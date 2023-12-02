@@ -96,7 +96,7 @@ def layout_main(a_dic, a_sel):
         if a_p is not None:
             if a_p == '分班':
                 df_q = df[(df['Question'] == a_q) & (df['班級'] == a_c)]
-                st.dataframe(df_q)
+                # st.dataframe(df_q)
             else:
                 df_q = df[(df['Question'] == a_q)]
             col1, col2 = st.columns(2)

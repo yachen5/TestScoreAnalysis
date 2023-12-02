@@ -19,6 +19,10 @@ pkl_file_path = r'summary.pkl'
 def layout_main(a_dic, a_sel):
     if a_sel is not None:
         df = a_dic[a_sel]
+        class_year = df['年級'].iloc[0]
+        subj = df['科目代號'].iloc[0]
+        # st.dataframe(df)
+        st.markdown(f"## {class_year}年級 {subj}科分析")
         # Group by to get % correct by student
         s_df = df.groupby(['學號', 'Answer']).agg({'Question': 'count'})
         s_df['Percentage'] = s_df.groupby(['學號'])['Question'].transform(lambda x: x / x.sum())
@@ -88,20 +92,22 @@ def layout_main(a_dic, a_sel):
         # Display the entered values after form submission
         if a_p is not None:
             if a_p == '分班':
-                # cc = list(df['班級'].unique())
-                # cc.sort()
-                # # cc.insert(0, 'All')
-                # a_c = st.selectbox('選擇班級', cc)
                 df_q = df[(df['Question'] == a_q) & (df['班級'] == a_c)]
                 st.dataframe(df_q)
             else:
-                grouped_df = df.groupby(['年級', '班級', 'Question', 'Answer']).agg({'學號': 'count'})
-                grouped_df['Percentage'] = grouped_df.groupby(['年級', '班級', 'Question'])['學號'].transform(
-                    lambda x: x / x.sum())
-                grouped_df = grouped_df.reset_index()
-                grouped_df['percentage_text'] = grouped_df['Percentage'].apply(lambda x: f'{int(x * 100)}%')
-                # Display the grouped DataFrame with counts
-                st.dataframe(grouped_df)
+                df_q = df[(df['Question'] == a_q)]
+
+            # st.dataframe(df_q)
+            grouped_df = df_q.groupby(['Rank', 'Answer']).agg({'學號': 'count'})
+            grouped_df['Percentage'] = grouped_df.groupby(['Rank'])['學號'].transform(lambda x: x / x.sum())
+            grouped_df = grouped_df.reset_index()
+            grouped_df['percentage_text'] = grouped_df['Percentage'].apply(lambda x: f'{int(x * 100)}%')
+            # Display the grouped DataFrame with counts
+            # st.dataframe(grouped_df)
+            st.markdown("R1~R6 答對率")
+            fig = px.bar(grouped_df, x='Rank', y='Percentage', color='Answer', text='percentage_text', width=1200,
+                         height=600)
+            st.plotly_chart(fig)
 
             # st.success(f"Name: {name}, Age: {age}, Email: {email}")
 

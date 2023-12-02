@@ -77,12 +77,15 @@ def layout_main(a_dic, a_sel):
         st.markdown('### Sorted by 答對率')
         st.plotly_chart(fig)
 
+        st.divider()
         st.markdown("### 單一問題分析")
         col1, col2, col3 = st.columns(3)
         # Add form components
         qs = list(df_sorted['Question'].unique())
+
         # qs.sort()
         a_q = col1.selectbox('請選擇一個題目', qs)
+
         op = [None, '全年級', '分班']
         a_p = col2.selectbox('分析方法', op)
         if a_p == '分班':
@@ -94,12 +97,21 @@ def layout_main(a_dic, a_sel):
 
         # Display the entered values after form submission
         if a_p is not None:
+
             if a_p == '分班':
                 df_q = df[(df['Question'] == a_q) & (df['班級'] == a_c)]
                 # st.dataframe(df_q)
             else:
                 df_q = df[(df['Question'] == a_q)]
-            col1, col2 = st.columns(2)
+                gg = df_q.groupby(['班級', 'Answer']).agg({'學號': 'count'})
+                gg['Percentage'] = gg.groupby(['班級'])['學號'].transform(lambda x: x / x.sum())
+                gg = gg.reset_index()
+                gg['percentage_text'] = gg['Percentage'].apply(lambda x: f'{int(x * 100)}%')
+                fig = px.bar(gg, x='班級', y='Percentage', color='Answer', text='percentage_text', width=1200,
+                             height=600, title=f'{a_q} 全年級各班答對比例')
+                # st.markdown('全年級各班答對比例')
+                st.plotly_chart(fig)
+
             # st.dataframe(df_q)
             grouped_df = df_q.groupby(['Rank', 'Answer']).agg({'學號': 'count'})
             grouped_df['Percentage'] = grouped_df.groupby(['Rank'])['學號'].transform(lambda x: x / x.sum())
@@ -107,15 +119,24 @@ def layout_main(a_dic, a_sel):
             grouped_df['percentage_text'] = grouped_df['Percentage'].apply(lambda x: f'{int(x * 100)}%')
             # Display the grouped DataFrame with counts
             # st.dataframe(grouped_df)
-            st.markdown("R1~R6 答對率")
-            fig = px.bar(grouped_df, x='Rank', y='Percentage', color='Answer', text='percentage_text')
-            col1.plotly_chart(fig)
+
             df_p = df_q.copy()
             df_pp = df_p.groupby('Answer').agg({'學號': 'count'})
             df_pp['Percentage'] = df_pp['學號'].transform(lambda x: x / len(df_q))
             df_pp = df_pp.reset_index()
             df_pp['percentage_text'] = df_pp['Percentage'].apply(lambda x: f'{int(x * 100)}%')
             df_pp = df_pp.sort_values(by='Answer')
+
+            # get correct
+            cor_p = df_pp.copy()
+            cor_p = cor_p.set_index('Answer')
+            cp_value = cor_p.loc['.', 'percentage_text']
+            st.markdown(f'### 本題{a_p}正確率:{cp_value}')
+            col1, col2 = st.columns(2)
+            col1.markdown("R1~R6 答對率")
+            fig = px.bar(grouped_df, x='Rank', y='Percentage', color='Answer', text='percentage_text')
+            col1.plotly_chart(fig)
+            col2.markdown("答案分布圖")
             fig = px.bar(df_pp, x='Answer', y='Percentage', color='Answer', text='percentage_text')
             col2.plotly_chart(fig)
 

@@ -107,8 +107,9 @@ def layout_main(a_dic, a_sel):
                 gg['Percentage'] = gg.groupby(['班級'])['學號'].transform(lambda x: x / x.sum())
                 gg = gg.reset_index()
                 gg['percentage_text'] = gg['Percentage'].apply(lambda x: f'{int(x * 100)}%')
+                st.markdown(f'### {a_q} 全年級各班答對比例')
                 fig = px.bar(gg, x='班級', y='Percentage', color='Answer', text='percentage_text', width=1200,
-                             height=600, title=f'{a_q} 全年級各班答對比例')
+                             height=600)
                 # st.markdown('全年級各班答對比例')
                 st.plotly_chart(fig)
 

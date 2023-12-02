@@ -42,7 +42,7 @@ def layout_main(a_dic, a_sel):
         s_p = s_c.copy()
         s_p = s_p.reset_index(drop=True)
         # st.dataframe(s_p)
-
+        st.markdown("### R1~R6 分群曲線")
         fig = px.bar(s_p, x=s_p.index, y='Percentage', color='Rank', width=1200, height=600)
         fig.update_xaxes(showticklabels=False)
         st.plotly_chart(fig)

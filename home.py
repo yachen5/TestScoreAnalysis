@@ -39,8 +39,11 @@ def layout_main(a_dic, a_sel):
                              labels=['R1', 'R2', 'R3', 'R4', 'R5', 'R6'], include_lowest=True)
 
         s_c = s_c.drop(['Answer', 'Question'], axis=1)
-        # st.dataframe(s_c)
-        fig = px.bar(s_c, x='學號', y='Percentage', color='Rank', width=1200, height=600)
+        s_p = s_c.copy()
+        s_p = s_p.reset_index(drop=True)
+        # st.dataframe(s_p)
+
+        fig = px.bar(s_p, x=s_p.index, y='Percentage', color='Rank', width=1200, height=600)
         fig.update_xaxes(showticklabels=False)
         st.plotly_chart(fig)
         b_len = len(df)
@@ -96,7 +99,7 @@ def layout_main(a_dic, a_sel):
                 st.dataframe(df_q)
             else:
                 df_q = df[(df['Question'] == a_q)]
-
+            col1, col2 = st.columns(2)
             # st.dataframe(df_q)
             grouped_df = df_q.groupby(['Rank', 'Answer']).agg({'學號': 'count'})
             grouped_df['Percentage'] = grouped_df.groupby(['Rank'])['學號'].transform(lambda x: x / x.sum())
@@ -105,9 +108,16 @@ def layout_main(a_dic, a_sel):
             # Display the grouped DataFrame with counts
             # st.dataframe(grouped_df)
             st.markdown("R1~R6 答對率")
-            fig = px.bar(grouped_df, x='Rank', y='Percentage', color='Answer', text='percentage_text', width=1200,
-                         height=600)
-            st.plotly_chart(fig)
+            fig = px.bar(grouped_df, x='Rank', y='Percentage', color='Answer', text='percentage_text')
+            col1.plotly_chart(fig)
+            df_p = df_q.copy()
+            df_pp = df_p.groupby('Answer').agg({'學號': 'count'})
+            df_pp['Percentage'] = df_pp['學號'].transform(lambda x: x / len(df_q))
+            df_pp = df_pp.reset_index()
+            df_pp['percentage_text'] = df_pp['Percentage'].apply(lambda x: f'{int(x * 100)}%')
+            df_pp = df_pp.sort_values(by='Answer')
+            fig = px.bar(df_pp, x='Answer', y='Percentage', color='Answer', text='percentage_text')
+            col2.plotly_chart(fig)
 
             # st.success(f"Name: {name}, Age: {age}, Email: {email}")
 

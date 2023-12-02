@@ -42,6 +42,7 @@ def layout_main(a_dic, a_sel):
         s_p = s_c.copy()
         s_p = s_p.reset_index(drop=True)
         # st.dataframe(s_p)
+        st.divider()
         st.markdown("### R1~R6 分群曲線")
         fig = px.bar(s_p, x=s_p.index, y='Percentage', color='Rank', width=1200, height=600)
         fig.update_xaxes(showticklabels=False)
@@ -56,6 +57,7 @@ def layout_main(a_dic, a_sel):
             st.stop()
         # st.dataframe(df)
 
+        st.divider()
         # Group by to get % correct by question and by the whole class year
         grouped_df = df.groupby(['年級', 'Question', 'Answer']).agg({'學號': 'count'})
         grouped_df['Percentage'] = grouped_df.groupby(['年級', 'Question'])['學號'].transform(lambda x: x / x.sum())
@@ -65,7 +67,7 @@ def layout_main(a_dic, a_sel):
 
         fig = px.bar(df_1, x='Question', y='Percentage', color='Answer', text='percentage_text', facet_row='年級',
                      width=1200, height=600)
-        st.markdown('### Standard Report')
+        st.markdown('### 各題答案分布')
         st.plotly_chart(fig)
         df_a = df_1[df_1['Answer'] == '.'].copy()
         df_a = df_a.drop(['學號', 'Answer'], axis=1)
@@ -74,7 +76,7 @@ def layout_main(a_dic, a_sel):
 
         fig = px.bar(df_sorted, x='Question', y='Percentage', text='percentage_text', color='Percentage', width=1200,
                      height=600, color_continuous_scale=["red", "green"])
-        st.markdown('### Sorted by 答對率')
+        st.markdown('### 各題 依答對率排序')
         st.plotly_chart(fig)
 
         st.divider()

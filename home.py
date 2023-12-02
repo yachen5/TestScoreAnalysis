@@ -1,4 +1,6 @@
 # This is a sample Python script.
+import pickle
+
 import numpy as np
 import pandas as pd
 import plotly_express as px
@@ -8,7 +10,7 @@ st.set_page_config(layout="wide")
 
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-import pickle
+
 
 # Specify the path to your .pkl file
 pkl_file_path = r'C:\Users\admin\Documents\Python Scripts\HK Analysis\summary.pkl'

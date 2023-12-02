@@ -13,7 +13,7 @@ st.set_page_config(layout="wide")
 
 
 # Specify the path to your .pkl file
-pkl_file_path = r'C:\Users\admin\Documents\Python Scripts\HK Analysis\summary.pkl'
+pkl_file_path = r'summary.pkl'
 
 
 def layout_main(a_dic, a_sel):

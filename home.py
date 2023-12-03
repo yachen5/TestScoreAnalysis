@@ -197,7 +197,7 @@ def layout_main(a_dic, a_sel, g_m, normal_only):
         s_c = s_c.sort_values(by='Percentage', ascending=True)
 
         # Divide students into 6 groups (R1 to R6)
-        if g_m == '十分法':
+        if g_m == '一般分法':
             s_c, a_text, s_p, fig2, a_text2 = grouping_2(s_c)
         else:
             s_c, a_text, s_p, fig2, a_text2 = grouping_1(s_c)
@@ -249,7 +249,7 @@ if __name__ == '__main__':
     selections.insert(0, "請選擇")
     a_sel = st.sidebar.selectbox("Please select a report", selections)
 
-    g_m = st.sidebar.selectbox("選擇分類法", ['十分法', '六等分法'])
+    g_m = st.sidebar.selectbox("選擇分類法", ['一般分法', '六等分法'])
     n_only = st.sidebar.toggle('普通班分析')
     layout_main(a_dic, a_sel, g_m, n_only)
     st.sidebar.write('版本 V6.1203_2023')

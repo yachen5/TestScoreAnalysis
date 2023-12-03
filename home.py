@@ -16,13 +16,107 @@ st.set_page_config(layout="wide")
 pkl_file_path = r'summary.pkl'
 
 
-def layout_main(a_dic, a_sel):
+def layout_part_3(df, df_sorted):
+    st.markdown("## 單一問題分析")
+
+    # Add form components
+    qs = list(df_sorted['Question'].unique())
+
+    # qs.sort()
+    a_q = st.selectbox('請選擇一個題目', qs)
+
+    # specific question's correct % of the whole class year
+    all_p = df_sorted.set_index('Question').loc[a_q, 'percentage_text']
+    df_qq = df[(df['Question'] == a_q)].copy()
+    gg = df_qq.groupby(['班級', 'Answer']).agg({'學號': 'count'})
+    gg['Percentage'] = gg.groupby(['班級'])['學號'].transform(lambda x: x / x.sum())
+    gg = gg.reset_index()
+    gg['percentage_text'] = gg['Percentage'].apply(lambda x: f'{int(x * 100)}%')
+
+    fig = px.bar(gg, x='班級', y='Percentage', color='Answer', text='percentage_text', width=1200, height=600)
+    # st.markdown('全年級各班答對比例')
+    st.markdown("### 全年級各班答案分布圖")
+    st.markdown("\t .\t-----> 回答正確")
+    st.markdown("\t =\t-----> 空白未作答")
+
+    st.plotly_chart(fig)
+
+    col1, col2 = st.columns(2)
+    op = ["請選擇", '全年級', '分班']
+    a_p = col1.selectbox('分析方法', op)
+    cc = list(df['班級'].unique())
+    cc.sort()
+    if a_p == '分班':
+        # cc.insert(0, 'All')
+        a_c = col2.multiselect('選擇班級，可複選', cc, cc[0])
+    else:
+        a_c = cc
+        # submitted = st.form_submit_button("Submit")
+
+    # Display the entered values after form submission
+    if (a_p is not "請選擇") & (len(a_c) > 0):
+        ct = st.container()
+
+        col1, col2 = st.columns([2, 1])
+
+        # revised
+        df_q = df[(df['Question'] == a_q) & (df['班級'].isin(a_c))]
+
+        # st.dataframe(df_q)
+        grouped_df = df_q.groupby(['Rank', 'Answer']).agg({'學號': 'count'})
+        grouped_df['Percentage'] = grouped_df.groupby(['Rank'])['學號'].transform(lambda x: x / x.sum())
+        grouped_df = grouped_df.reset_index()
+        grouped_df['Percentage'] = grouped_df['Percentage'].fillna(0)
+        grouped_df['percentage_text'] = grouped_df['Percentage'].apply(lambda x: f'{int(x * 100)}%')
+        # Display the grouped DataFrame with counts
+        # st.dataframe(grouped_df)
+
+        df_p = df_q.copy()
+        df_pp = df_p.groupby('Answer').agg({'學號': 'count'})
+        df_pp['Percentage'] = df_pp['學號'].transform(lambda x: x / len(df_q))
+        df_pp = df_pp.reset_index()
+        df_pp['percentage_text'] = df_pp['Percentage'].apply(lambda x: f'{int(x * 100)}%')
+        df_pp = df_pp.sort_values(by='Answer')
+
+        # get correct
+        cor_p = df_pp.copy()
+        cor_p = cor_p.set_index('Answer')
+        cp_value = cor_p.loc['.', 'percentage_text']
+        ct.markdown(f'### {a_q} 全年級各班答對比例 {all_p}，依分類方法{a_p}正確率:{cp_value}')
+
+        col1.markdown(f"{a_c} R1~R6 答對率")
+        fig = px.bar(grouped_df, x='Rank', y='Percentage', color='Answer', text='percentage_text')
+        col1.plotly_chart(fig)
+        col1.markdown(f"{a_c} 答案分布圖")
+        fig = px.bar(df_pp, x='Answer', y='Percentage', color='Answer', text='percentage_text')
+        col1.plotly_chart(fig)
+
+
+def layout_main(a_dic, a_sel, normal_only):
     if a_sel is not "請選擇":
         df = a_dic[a_sel]
         class_year = df['年級'].iloc[0]
         subj = df['科目代號'].iloc[0]
         # st.dataframe(df)
         st.markdown(f"## {class_year}年級 {subj}科分析")
+
+        # include 體育班 or not
+        unique_values = sorted(df['班級'].unique())
+
+        # Step 2: Determine the last unique value
+        last_unique_value = unique_values[-1]
+
+        # Step 3: Create a new column 'label' with 'normal' for all rows initially
+        df['label'] = 'normal'
+
+        # Step 4: Set 'special' label for rows where the column value is the last unique value
+        df.loc[df['班級'] == last_unique_value, 'label'] = 'special'
+
+        if normal_only:
+            df = df[df['label'] == 'normal']
+        else:
+            pass
+
         # Group by to get % correct by student
         s_df = df.groupby(['學號', 'Answer']).agg({'Question': 'count'})
         s_df['Percentage'] = s_df.groupby(['學號'])['Question'].transform(lambda x: x / x.sum())
@@ -60,7 +154,7 @@ def layout_main(a_dic, a_sel):
         fig.update_traces(textposition='top center')
         # Set y-axis to start from zero
         fig.update_layout(yaxis=dict(range=[0, max(s_avg['Percentage'] + 0.2)]))
-        col2.markdown('各組平均答對率 斜率圖')
+        col2.markdown('各組平均答對率 斜率圖 (各組變化太大須注意)')
         col2.plotly_chart(fig)
 
         # join the original data
@@ -99,77 +193,7 @@ def layout_main(a_dic, a_sel):
         st.plotly_chart(fig)
 
         st.divider()
-        st.markdown("### 單一問題分析")
-        col1, col2, col3 = st.columns(3)
-        # Add form components
-        qs = list(df_sorted['Question'].unique())
-
-        # qs.sort()
-        a_q = col1.selectbox('請選擇一個題目', qs)
-
-        # specific question's correct % of the whole class year
-        all_p = df_sorted.set_index('Question').loc[a_q, 'percentage_text']
-
-        op = ["請選擇", '全年級', '分班']
-        a_p = col2.selectbox('分析方法', op)
-        cc = list(df['班級'].unique())
-        cc.sort()
-        if a_p == '分班':
-            # cc.insert(0, 'All')
-            a_c = col3.multiselect('選擇班級，可複選', cc, cc[0])
-        else:
-            a_c = cc
-            # submitted = st.form_submit_button("Submit")
-
-        # Display the entered values after form submission
-        if (a_p is not "請選擇") & (len(a_c) > 0):
-            ct = st.container()
-
-            col1, col2 = st.columns([2, 1])
-            df_qq = df[(df['Question'] == a_q)].copy()
-            gg = df_qq.groupby(['班級', 'Answer']).agg({'學號': 'count'})
-            gg['Percentage'] = gg.groupby(['班級'])['學號'].transform(lambda x: x / x.sum())
-            gg = gg.reset_index()
-            gg['percentage_text'] = gg['Percentage'].apply(lambda x: f'{int(x * 100)}%')
-
-            fig = px.bar(gg, x='班級', y='Percentage', color='Answer', text='percentage_text')
-            # st.markdown('全年級各班答對比例')
-            col1.markdown("\t .\t-----> 回答正確")
-            col1.markdown("\t =\t-----> 空白未作答")
-            col1.plotly_chart(fig)
-            # revised
-            df_q = df[(df['Question'] == a_q) & (df['班級'].isin(a_c))]
-
-            # st.dataframe(df_q)
-            grouped_df = df_q.groupby(['Rank', 'Answer']).agg({'學號': 'count'})
-            grouped_df['Percentage'] = grouped_df.groupby(['Rank'])['學號'].transform(lambda x: x / x.sum())
-            grouped_df = grouped_df.reset_index()
-            grouped_df['Percentage'] = grouped_df['Percentage'].fillna(0)
-            grouped_df['percentage_text'] = grouped_df['Percentage'].apply(lambda x: f'{int(x * 100)}%')
-            # Display the grouped DataFrame with counts
-            # st.dataframe(grouped_df)
-
-            df_p = df_q.copy()
-            df_pp = df_p.groupby('Answer').agg({'學號': 'count'})
-            df_pp['Percentage'] = df_pp['學號'].transform(lambda x: x / len(df_q))
-            df_pp = df_pp.reset_index()
-            df_pp['percentage_text'] = df_pp['Percentage'].apply(lambda x: f'{int(x * 100)}%')
-            df_pp = df_pp.sort_values(by='Answer')
-
-            # get correct
-            cor_p = df_pp.copy()
-            cor_p = cor_p.set_index('Answer')
-            cp_value = cor_p.loc['.', 'percentage_text']
-            ct.markdown(f'### {a_q} 全年級各班答對比例 {all_p}，依分類方法{a_p}正確率:{cp_value}')
-
-            col1.markdown(f"{a_c} R1~R6 答對率")
-            fig = px.bar(grouped_df, x='Rank', y='Percentage', color='Answer', text='percentage_text')
-            col1.plotly_chart(fig)
-            col1.markdown(f"{a_c} 答案分布圖")
-            fig = px.bar(df_pp, x='Answer', y='Percentage', color='Answer', text='percentage_text')
-            col1.plotly_chart(fig)
-
-            # st.success(f"Name: {name}, Age: {age}, Email: {email}")
+        layout_part_3(df, df_sorted)
 
 
 # Press the green button in the gutter to run the script.
@@ -182,6 +206,9 @@ if __name__ == '__main__':
     selections.sort()
     selections.insert(0, "請選擇")
     a_sel = st.sidebar.selectbox("Please select a report", selections)
-    layout_main(a_dic, a_sel)
+
+    n_only = st.sidebar.toggle('普通班分析')
+    layout_main(a_dic, a_sel, n_only)
+    st.sidebar.write('版本 V3.1203_2023')
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

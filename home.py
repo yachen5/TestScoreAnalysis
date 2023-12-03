@@ -87,6 +87,34 @@ def layout_part_3(df, df_sorted):
         callback_analysis(df, a_q, a_c2, col2)
 
 
+def layout_part_2(df):
+    grouped_df = df.groupby(['年級', 'Question', 'Answer']).agg({'學號': 'count'})
+    grouped_df['Percentage'] = grouped_df.groupby(['年級', 'Question'])['學號'].transform(lambda x: x / x.sum())
+    grouped_df = grouped_df.reset_index()
+    grouped_df['percentage_text'] = grouped_df['Percentage'].apply(lambda x: f'{int(x * 100)}%')
+    df_1 = grouped_df.copy()
+    # df_1 = df_1.sort_values(by='Answer')
+    category_order = list(df_1['Question'].unique()).sort()
+    fig = px.bar(df_1, x='Question', y='Percentage', color='Answer', text='percentage_text', facet_row='年級',
+                 width=1200, height=600, category_orders={'Question': category_order})
+    st.markdown('### 各題答案分布')
+    st.markdown("\t .\t-----> 回答正確")
+    st.markdown("\t =\t-----> 空白未作答")
+    st.plotly_chart(fig)
+    df_a = df_1[df_1['Answer'] == '.'].copy()
+    df_a = df_a.drop(['學號', 'Answer'], axis=1)
+
+    df_sorted = df_a.sort_values(by='Percentage')
+
+    fig = px.bar(df_sorted, x='Question', y='Percentage', text='percentage_text', color='Percentage', width=1200,
+                 height=600, color_continuous_scale=["red", "green"])
+    st.markdown('### 各題 依答對率排序')
+    st.plotly_chart(fig)
+
+    st.divider()
+    layout_part_3(df, df_sorted)
+
+
 def layout_main(a_dic, a_sel, normal_only):
     if a_sel is not "請選擇":
         df = a_dic[a_sel]
@@ -164,31 +192,8 @@ def layout_main(a_dic, a_sel, normal_only):
         # st.dataframe(df)
 
         st.divider()
+        layout_part_2(df)
         # Group by to get % correct by question and by the whole class year
-        grouped_df = df.groupby(['年級', 'Question', 'Answer']).agg({'學號': 'count'})
-        grouped_df['Percentage'] = grouped_df.groupby(['年級', 'Question'])['學號'].transform(lambda x: x / x.sum())
-        grouped_df = grouped_df.reset_index()
-        grouped_df['percentage_text'] = grouped_df['Percentage'].apply(lambda x: f'{int(x * 100)}%')
-        df_1 = grouped_df.copy()
-        df_1 = df_1.sort_values(by='Answer')
-        fig = px.bar(df_1, x='Question', y='Percentage', color='Answer', text='percentage_text', facet_row='年級',
-                     width=1200, height=600)
-        st.markdown('### 各題答案分布')
-        st.markdown("\t .\t-----> 回答正確")
-        st.markdown("\t =\t-----> 空白未作答")
-        st.plotly_chart(fig)
-        df_a = df_1[df_1['Answer'] == '.'].copy()
-        df_a = df_a.drop(['學號', 'Answer'], axis=1)
-
-        df_sorted = df_a.sort_values(by='Percentage')
-
-        fig = px.bar(df_sorted, x='Question', y='Percentage', text='percentage_text', color='Percentage', width=1200,
-                     height=600, color_continuous_scale=["red", "green"])
-        st.markdown('### 各題 依答對率排序')
-        st.plotly_chart(fig)
-
-        st.divider()
-        layout_part_3(df, df_sorted)
 
 
 # Press the green button in the gutter to run the script.

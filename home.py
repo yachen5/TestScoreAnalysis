@@ -16,6 +16,54 @@ st.set_page_config(layout="wide")
 pkl_file_path = r'summary.pkl'
 
 
+def grouping_1(s_c):
+    group_size = len(s_c) // 6
+    s_c['Rank'] = pd.cut(np.arange(len(s_c)),
+                         bins=[-1, group_size, 2 * group_size, 3 * group_size, 4 * group_size, 5 * group_size,
+                               len(s_c)],
+                         labels=['R1', 'R2', 'R3', 'R4', 'R5', 'R6'], include_lowest=True)
+    r_text = """### R1~R6 分群曲線
+    - 先把全年級學生當科答對率(1=100%)，從最低排到最高
+    - 每根bar代表一位學生，移除學號
+    - 分成六等分: R1是最高分的一組，到R6是最低分的一組"""
+
+    s_c = s_c.drop(['Answer', 'Question'], axis=1)
+    s_p = s_c.copy()
+    s_p = s_p.reset_index(drop=True)
+    s_avg = s_p.groupby('Rank').agg({'Percentage': 'mean'})
+    s_avg = s_avg.reset_index()
+    s_avg['percentage_text'] = s_avg['Percentage'].apply(lambda x: f'{int(x * 100)}%')
+    fig = px.line(s_avg, x='Rank', y='Percentage', text='percentage_text')
+    fig.update_traces(textposition='top center')
+    # Set y-axis to start from zero
+    fig.update_layout(yaxis=dict(range=[0, max(s_avg['Percentage'] + 0.2)]))
+    r_text2 = "各組平均答對率 斜率圖(各組變化太大須注意)"
+    return s_c.copy(), r_text, s_p, fig, r_text2
+
+
+def grouping_2(s_c):
+    bins = [0, 0.6, 0.7, 0.8, 0.9, 1.1]
+    s_c['Rank'] = pd.cut(s_c['Percentage'], bins=bins,
+                         labels=['<60', '60-69', '70-79', '80-89', '>90'], right=False)
+    r_text = """### 分群曲線
+    - 先把全年級學生當科答對率(1=100%)，從最低排到最高
+    - 每根bar代表一位學生，移除學號
+    - 分成5群: 每10分為一群"""
+
+    s_c = s_c.drop(['Answer', 'Question'], axis=1)
+    s_p = s_c.copy()
+    s_p = s_p.reset_index(drop=True)
+    s_count = s_p.groupby('Rank').agg({'學號': 'count'})
+    s_count = s_count.reset_index()
+    r_text2 = "各組人數"
+    fig = px.bar(s_count, x='Rank', y='學號', text='學號', color='Rank')
+    # fig.update_traces(textposition='top center')
+    # Set y-axis to start from zero
+    # fig.update_layout(yaxis=dict(range=[0, max(s_count['學號'] + 10)]))
+
+    return s_c.copy(), r_text, s_p, fig, r_text2
+
+
 def callback_analysis(df, a_q, a_c, col):
     df_q = df[(df['Question'] == a_q) & (df['班級'].isin(a_c))]
 
@@ -110,12 +158,10 @@ def layout_part_2(df):
                  height=600, color_continuous_scale=["red", "green"])
     st.markdown('### 各題 依答對率排序')
     st.plotly_chart(fig)
-
-    st.divider()
-    layout_part_3(df, df_sorted)
+    return df_sorted
 
 
-def layout_main(a_dic, a_sel, normal_only):
+def layout_main(a_dic, a_sel, g_m, normal_only):
     if a_sel is not "請選擇":
         df = a_dic[a_sel]
         class_year = df['年級'].iloc[0]
@@ -146,39 +192,30 @@ def layout_main(a_dic, a_sel, normal_only):
         s_df = s_df.reset_index()
         s_df['percentage_text'] = s_df['Percentage'].apply(lambda x: f'{int(x * 100)}%')
         s_c = s_df[s_df['Answer'] == '.'].copy()
-        s_c = s_c.sort_values(by='Percentage', ascending=False)
+        s_c = s_c.sort_values(by='Percentage', ascending=True)
 
         # Divide students into 6 groups (R1 to R6)
-        group_size = len(s_c) // 6
-        s_c['Rank'] = pd.cut(np.arange(len(s_c)),
-                             bins=[-1, group_size, 2 * group_size, 3 * group_size, 4 * group_size, 5 * group_size,
-                                   len(df)],
-                             labels=['R1', 'R2', 'R3', 'R4', 'R5', 'R6'], include_lowest=True)
+        if g_m == '十分法':
+            s_c, a_text, s_p, fig2, a_text2 = grouping_2(s_c)
+        else:
+            s_c, a_text, s_p, fig2, a_text2 = grouping_1(s_c)
 
-        s_c = s_c.drop(['Answer', 'Question'], axis=1)
-        s_p = s_c.copy()
-        s_p = s_p.reset_index(drop=True)
         # st.dataframe(s_p)
         st.divider()
-        st.markdown("### R1~R6 分群曲線")
-        st.markdown("""
-        - 先把全年級學生當科答對率(1=100%)，從最高排到最低
-        - 每根bar代表一位學生，移除學號
-        - 分成六等分: R1是最高分的一組，到R6是最低分的一組""")
+        st.markdown(a_text)
         col1, col2 = st.columns(2)
         fig = px.bar(s_p, x=s_p.index, y='Percentage', color='Rank')
         fig.update_xaxes(showticklabels=False)
         col1.markdown('Ranking 排列')
         col1.plotly_chart(fig)
-        s_avg = s_p.groupby('Rank').agg({'Percentage': 'mean'})
-        s_avg = s_avg.reset_index()
-        s_avg['percentage_text'] = s_avg['Percentage'].apply(lambda x: f'{int(x * 100)}%')
-        fig = px.line(s_avg, x='Rank', y='Percentage', text='percentage_text')
-        fig.update_traces(textposition='top center')
-        # Set y-axis to start from zero
-        fig.update_layout(yaxis=dict(range=[0, max(s_avg['Percentage'] + 0.2)]))
-        col2.markdown('各組平均答對率 斜率圖 (各組變化太大須注意)')
-        col2.plotly_chart(fig)
+
+        s_minmax = s_p.groupby('Rank')['Percentage'].agg(['min', 'max'])
+        s_minmax = s_minmax.reset_index()
+        st.markdown('各組答對率 [min max] 值')
+        st.dataframe(s_minmax)
+
+        col2.markdown(a_text2)
+        col2.plotly_chart(fig2)
 
         # join the original data
         b_len = len(df)
@@ -192,8 +229,11 @@ def layout_main(a_dic, a_sel, normal_only):
         # st.dataframe(df)
 
         st.divider()
-        layout_part_2(df)
+        df_sorted = layout_part_2(df)
         # Group by to get % correct by question and by the whole class year
+
+        st.divider()
+        layout_part_3(df, df_sorted)
 
 
 # Press the green button in the gutter to run the script.
@@ -207,8 +247,9 @@ if __name__ == '__main__':
     selections.insert(0, "請選擇")
     a_sel = st.sidebar.selectbox("Please select a report", selections)
 
+    g_m = st.sidebar.selectbox("選擇分類法", ['十分法', '六等分法'])
     n_only = st.sidebar.toggle('普通班分析')
-    layout_main(a_dic, a_sel, n_only)
+    layout_main(a_dic, a_sel, g_m, n_only)
     st.sidebar.write('版本 V5.1203_2023')
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

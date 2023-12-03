@@ -81,10 +81,12 @@ def layout_main(a_dic, a_sel):
         grouped_df = grouped_df.reset_index()
         grouped_df['percentage_text'] = grouped_df['Percentage'].apply(lambda x: f'{int(x * 100)}%')
         df_1 = grouped_df.copy()
-
+        df_1 = df_1.sort_values(by='Answer')
         fig = px.bar(df_1, x='Question', y='Percentage', color='Answer', text='percentage_text', facet_row='年級',
                      width=1200, height=600)
         st.markdown('### 各題答案分布')
+        st.markdown("\t .\t-----> 回答正確")
+        st.markdown("\t =\t-----> 空白未作答")
         st.plotly_chart(fig)
         df_a = df_1[df_1['Answer'] == '.'].copy()
         df_a = df_a.drop(['學號', 'Answer'], axis=1)
@@ -130,6 +132,8 @@ def layout_main(a_dic, a_sel):
                 fig = px.bar(gg, x='班級', y='Percentage', color='Answer', text='percentage_text', width=1200,
                              height=600)
                 # st.markdown('全年級各班答對比例')
+                st.markdown("\t .\t-----> 回答正確")
+                st.markdown("\t =\t-----> 空白未作答")
                 st.plotly_chart(fig)
 
             # st.dataframe(df_q)

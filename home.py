@@ -17,7 +17,7 @@ pkl_file_path = r'summary.pkl'
 
 
 def layout_main(a_dic, a_sel):
-    if a_sel is not None:
+    if a_sel is not "請選擇":
         df = a_dic[a_sel]
         class_year = df['年級'].iloc[0]
         subj = df['科目代號'].iloc[0]
@@ -44,9 +44,26 @@ def layout_main(a_dic, a_sel):
         # st.dataframe(s_p)
         st.divider()
         st.markdown("### R1~R6 分群曲線")
-        fig = px.bar(s_p, x=s_p.index, y='Percentage', color='Rank', width=1200, height=600)
+        st.markdown("""
+        - 先把全年級學生當科答對率(1=100%)，從最高排到最低
+        - 每根bar代表一位學生，移除學號
+        - 分成六等分: R1是最高分的一組，到R6是最低分的一組""")
+        col1, col2 = st.columns(2)
+        fig = px.bar(s_p, x=s_p.index, y='Percentage', color='Rank')
         fig.update_xaxes(showticklabels=False)
-        st.plotly_chart(fig)
+        col1.markdown('Ranking 排列')
+        col1.plotly_chart(fig)
+        s_avg = s_p.groupby('Rank').agg({'Percentage': 'mean'})
+        s_avg = s_avg.reset_index()
+        s_avg['percentage_text'] = s_avg['Percentage'].apply(lambda x: f'{int(x * 100)}%')
+        fig = px.line(s_avg, x='Rank', y='Percentage', text='percentage_text')
+        fig.update_traces(textposition='top center')
+        # Set y-axis to start from zero
+        fig.update_layout(yaxis=dict(range=[0, max(s_avg['Percentage'] + 0.2)]))
+        col2.markdown('各組平均答對率 斜率圖')
+        col2.plotly_chart(fig)
+
+        # join the original data
         b_len = len(df)
         df = df.merge(s_c, on=['學號'], how='left')
         a_len = len(df)
@@ -88,7 +105,7 @@ def layout_main(a_dic, a_sel):
         # qs.sort()
         a_q = col1.selectbox('請選擇一個題目', qs)
 
-        op = [None, '全年級', '分班']
+        op = ["請選擇", '全年級', '分班']
         a_p = col2.selectbox('分析方法', op)
         if a_p == '分班':
             cc = list(df['班級'].unique())
@@ -98,7 +115,7 @@ def layout_main(a_dic, a_sel):
             # submitted = st.form_submit_button("Submit")
 
         # Display the entered values after form submission
-        if a_p is not None:
+        if a_p is not "請選擇":
 
             if a_p == '分班':
                 df_q = df[(df['Question'] == a_q) & (df['班級'] == a_c)]
@@ -154,7 +171,7 @@ if __name__ == '__main__':
 
     selections = list(a_dic.keys())
     selections.sort()
-    selections.insert(0, None)
+    selections.insert(0, "請選擇")
     a_sel = st.sidebar.selectbox("Please select a report", selections)
     layout_main(a_dic, a_sel)
 

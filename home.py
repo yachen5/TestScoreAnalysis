@@ -113,14 +113,14 @@ def layout_main(a_dic, a_sel):
             cc = list(df['班級'].unique())
             cc.sort()
             # cc.insert(0, 'All')
-            a_c = col3.selectbox('選擇班級', cc)
+            a_c = col3.multiselect('選擇班級，可複選', cc, cc[0])
             # submitted = st.form_submit_button("Submit")
 
         # Display the entered values after form submission
         if a_p is not "請選擇":
 
             if a_p == '分班':
-                df_q = df[(df['Question'] == a_q) & (df['班級'] == a_c)]
+                df_q = df[(df['Question'] == a_q) & (df['班級'].isin(a_c))]
                 # st.dataframe(df_q)
             else:
                 df_q = df[(df['Question'] == a_q)]
@@ -140,6 +140,7 @@ def layout_main(a_dic, a_sel):
             grouped_df = df_q.groupby(['Rank', 'Answer']).agg({'學號': 'count'})
             grouped_df['Percentage'] = grouped_df.groupby(['Rank'])['學號'].transform(lambda x: x / x.sum())
             grouped_df = grouped_df.reset_index()
+            grouped_df['Percentage'] = grouped_df['Percentage'].fillna(0)
             grouped_df['percentage_text'] = grouped_df['Percentage'].apply(lambda x: f'{int(x * 100)}%')
             # Display the grouped DataFrame with counts
             # st.dataframe(grouped_df)

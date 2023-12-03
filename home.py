@@ -16,6 +16,39 @@ st.set_page_config(layout="wide")
 pkl_file_path = r'summary.pkl'
 
 
+def callback_analysis(df, a_q, a_c, col):
+    df_q = df[(df['Question'] == a_q) & (df['班級'].isin(a_c))]
+
+    # st.dataframe(df_q)
+    grouped_df = df_q.groupby(['Rank', 'Answer']).agg({'學號': 'count'})
+    grouped_df['Percentage'] = grouped_df.groupby(['Rank'])['學號'].transform(lambda x: x / x.sum())
+    grouped_df = grouped_df.reset_index()
+    grouped_df['Percentage'] = grouped_df['Percentage'].fillna(0)
+    grouped_df['percentage_text'] = grouped_df['Percentage'].apply(lambda x: f'{int(x * 100)}%')
+    # Display the grouped DataFrame with counts
+    # st.dataframe(grouped_df)
+
+    df_p = df_q.copy()
+    df_pp = df_p.groupby('Answer').agg({'學號': 'count'})
+    df_pp['Percentage'] = df_pp['學號'].transform(lambda x: x / len(df_q))
+    df_pp = df_pp.reset_index()
+    df_pp['percentage_text'] = df_pp['Percentage'].apply(lambda x: f'{int(x * 100)}%')
+    df_pp = df_pp.sort_values(by='Answer')
+
+    # get correct
+    cor_p = df_pp.copy()
+    cor_p = cor_p.set_index('Answer')
+    cp_value = cor_p.loc['.', 'percentage_text']
+    col.markdown(f'此組分類正確率:{cp_value}')
+
+    col.markdown(f"{a_c} R1~R6 答對率")
+    fig = px.bar(grouped_df, x='Rank', y='Percentage', color='Answer', text='percentage_text')
+    col.plotly_chart(fig)
+    col.markdown(f"{a_c} 答案分布圖")
+    fig = px.bar(df_pp, x='Answer', y='Percentage', color='Answer', text='percentage_text')
+    col.plotly_chart(fig)
+
+
 def layout_part_3(df, df_sorted):
     st.markdown("## 單一問題分析")
 
@@ -41,55 +74,17 @@ def layout_part_3(df, df_sorted):
 
     st.plotly_chart(fig)
 
+    st.markdown("### 分組比較: 可全年級，幾個班或一個班互比")
     col1, col2 = st.columns(2)
-    op = ["請選擇", '全年級', '分班']
-    a_p = col1.selectbox('分析方法', op)
     cc = list(df['班級'].unique())
     cc.sort()
-    if a_p == '分班':
-        # cc.insert(0, 'All')
-        a_c = col2.multiselect('選擇班級，可複選', cc, cc[0])
-    else:
-        a_c = cc
-        # submitted = st.form_submit_button("Submit")
+    a_c1 = col1.multiselect('選擇班級，可複選', cc, cc)
+    a_c2 = col2.multiselect('選擇班級，可複選', cc, cc[0])
 
     # Display the entered values after form submission
-    if (a_p is not "請選擇") & (len(a_c) > 0):
-        ct = st.container()
-
-        col1, col2 = st.columns([2, 1])
-
-        # revised
-        df_q = df[(df['Question'] == a_q) & (df['班級'].isin(a_c))]
-
-        # st.dataframe(df_q)
-        grouped_df = df_q.groupby(['Rank', 'Answer']).agg({'學號': 'count'})
-        grouped_df['Percentage'] = grouped_df.groupby(['Rank'])['學號'].transform(lambda x: x / x.sum())
-        grouped_df = grouped_df.reset_index()
-        grouped_df['Percentage'] = grouped_df['Percentage'].fillna(0)
-        grouped_df['percentage_text'] = grouped_df['Percentage'].apply(lambda x: f'{int(x * 100)}%')
-        # Display the grouped DataFrame with counts
-        # st.dataframe(grouped_df)
-
-        df_p = df_q.copy()
-        df_pp = df_p.groupby('Answer').agg({'學號': 'count'})
-        df_pp['Percentage'] = df_pp['學號'].transform(lambda x: x / len(df_q))
-        df_pp = df_pp.reset_index()
-        df_pp['percentage_text'] = df_pp['Percentage'].apply(lambda x: f'{int(x * 100)}%')
-        df_pp = df_pp.sort_values(by='Answer')
-
-        # get correct
-        cor_p = df_pp.copy()
-        cor_p = cor_p.set_index('Answer')
-        cp_value = cor_p.loc['.', 'percentage_text']
-        ct.markdown(f'### {a_q} 全年級各班答對比例 {all_p}，依分類方法{a_p}正確率:{cp_value}')
-
-        col1.markdown(f"{a_c} R1~R6 答對率")
-        fig = px.bar(grouped_df, x='Rank', y='Percentage', color='Answer', text='percentage_text')
-        col1.plotly_chart(fig)
-        col1.markdown(f"{a_c} 答案分布圖")
-        fig = px.bar(df_pp, x='Answer', y='Percentage', color='Answer', text='percentage_text')
-        col1.plotly_chart(fig)
+    if (len(a_c1) > 0) & (len(a_c2) > 0):
+        callback_analysis(df, a_q, a_c1, col1)
+        callback_analysis(df, a_q, a_c2, col2)
 
 
 def layout_main(a_dic, a_sel, normal_only):

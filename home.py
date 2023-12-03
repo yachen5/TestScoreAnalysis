@@ -107,33 +107,38 @@ def layout_main(a_dic, a_sel):
         # qs.sort()
         a_q = col1.selectbox('請選擇一個題目', qs)
 
+        # specific question's correct % of the whole class year
+        all_p = df_sorted.set_index('Question').loc[a_q, 'percentage_text']
+
         op = ["請選擇", '全年級', '分班']
         a_p = col2.selectbox('分析方法', op)
+        cc = list(df['班級'].unique())
+        cc.sort()
         if a_p == '分班':
-            cc = list(df['班級'].unique())
-            cc.sort()
             # cc.insert(0, 'All')
             a_c = col3.multiselect('選擇班級，可複選', cc, cc[0])
+        else:
+            a_c = cc
             # submitted = st.form_submit_button("Submit")
 
         # Display the entered values after form submission
-        if a_p is not "請選擇":
+        if (a_p is not "請選擇") & (len(a_c) > 0):
+            ct = st.container()
 
-            if a_p == '分班':
-                df_q = df[(df['Question'] == a_q) & (df['班級'].isin(a_c))]
-                # st.dataframe(df_q)
-            else:
-                df_q = df[(df['Question'] == a_q)]
-                gg = df_q.groupby(['班級', 'Answer']).agg({'學號': 'count'})
-                gg['Percentage'] = gg.groupby(['班級'])['學號'].transform(lambda x: x / x.sum())
-                gg = gg.reset_index()
-                gg['percentage_text'] = gg['Percentage'].apply(lambda x: f'{int(x * 100)}%')
-                st.markdown(f'### {a_q} 全年級各班答對比例')
-                fig = px.bar(gg, x='班級', y='Percentage', color='Answer', text='percentage_text')
-                # st.markdown('全年級各班答對比例')
-                st.markdown("\t .\t-----> 回答正確")
-                st.markdown("\t =\t-----> 空白未作答")
-                st.plotly_chart(fig)
+            col1, col2 = st.columns([2, 1])
+            df_qq = df[(df['Question'] == a_q)].copy()
+            gg = df_qq.groupby(['班級', 'Answer']).agg({'學號': 'count'})
+            gg['Percentage'] = gg.groupby(['班級'])['學號'].transform(lambda x: x / x.sum())
+            gg = gg.reset_index()
+            gg['percentage_text'] = gg['Percentage'].apply(lambda x: f'{int(x * 100)}%')
+
+            fig = px.bar(gg, x='班級', y='Percentage', color='Answer', text='percentage_text')
+            # st.markdown('全年級各班答對比例')
+            col1.markdown("\t .\t-----> 回答正確")
+            col1.markdown("\t =\t-----> 空白未作答")
+            col1.plotly_chart(fig)
+            # revised
+            df_q = df[(df['Question'] == a_q) & (df['班級'].isin(a_c))]
 
             # st.dataframe(df_q)
             grouped_df = df_q.groupby(['Rank', 'Answer']).agg({'學號': 'count'})
@@ -155,14 +160,14 @@ def layout_main(a_dic, a_sel):
             cor_p = df_pp.copy()
             cor_p = cor_p.set_index('Answer')
             cp_value = cor_p.loc['.', 'percentage_text']
-            st.markdown(f'### 本題{a_p}正確率:{cp_value}')
-            col1, col2 = st.columns(2)
-            col1.markdown("R1~R6 答對率")
+            ct.markdown(f'### {a_q} 全年級各班答對比例 {all_p}，依分類方法{a_p}正確率:{cp_value}')
+
+            col1.markdown(f"{a_c} R1~R6 答對率")
             fig = px.bar(grouped_df, x='Rank', y='Percentage', color='Answer', text='percentage_text')
             col1.plotly_chart(fig)
-            col2.markdown("答案分布圖")
+            col1.markdown(f"{a_c} 答案分布圖")
             fig = px.bar(df_pp, x='Answer', y='Percentage', color='Answer', text='percentage_text')
-            col2.plotly_chart(fig)
+            col1.plotly_chart(fig)
 
             # st.success(f"Name: {name}, Age: {age}, Email: {email}")
 

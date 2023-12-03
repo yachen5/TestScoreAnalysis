@@ -129,8 +129,7 @@ def layout_main(a_dic, a_sel):
                 gg = gg.reset_index()
                 gg['percentage_text'] = gg['Percentage'].apply(lambda x: f'{int(x * 100)}%')
                 st.markdown(f'### {a_q} 全年級各班答對比例')
-                fig = px.bar(gg, x='班級', y='Percentage', color='Answer', text='percentage_text', width=1200,
-                             height=600)
+                fig = px.bar(gg, x='班級', y='Percentage', color='Answer', text='percentage_text')
                 # st.markdown('全年級各班答對比例')
                 st.markdown("\t .\t-----> 回答正確")
                 st.markdown("\t =\t-----> 空白未作答")

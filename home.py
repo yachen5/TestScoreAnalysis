@@ -204,6 +204,6 @@ if __name__ == '__main__':
 
     n_only = st.sidebar.toggle('普通班分析')
     layout_main(a_dic, a_sel, n_only)
-    st.sidebar.write('版本 V3.1203_2023')
+    st.sidebar.write('版本 V5.1203_2023')
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

@@ -163,7 +163,7 @@ def layout_part_2(df):
 
 def layout_main(a_dic, a_sel, g_m, normal_only):
     if a_sel is "請選擇":
-        st.markdown("# <--- Please click the arrow to expand sidebar")
+        st.markdown("# <--- 按箭頭來展開 sidebar")
     else:
         df = a_dic[a_sel]
         class_year = df['年級'].iloc[0]

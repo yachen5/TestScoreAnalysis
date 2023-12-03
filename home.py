@@ -162,7 +162,9 @@ def layout_part_2(df):
 
 
 def layout_main(a_dic, a_sel, g_m, normal_only):
-    if a_sel is not "請選擇":
+    if a_sel is "請選擇":
+        st.markdown("# <--- Please click the arrow to expand sidebar")
+    else:
         df = a_dic[a_sel]
         class_year = df['年級'].iloc[0]
         subj = df['科目代號'].iloc[0]
@@ -250,6 +252,6 @@ if __name__ == '__main__':
     g_m = st.sidebar.selectbox("選擇分類法", ['十分法', '六等分法'])
     n_only = st.sidebar.toggle('普通班分析')
     layout_main(a_dic, a_sel, g_m, n_only)
-    st.sidebar.write('版本 V5.1203_2023')
+    st.sidebar.write('版本 V6.1203_2023')
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

@@ -89,7 +89,7 @@ def callback_analysis(df, a_q, a_c, col):
     cp_value = cor_p.loc['.', 'percentage_text']
     col.markdown(f'此組分類正確率:{cp_value}')
 
-    col.markdown(f"{a_c} R1~R6 答對率")
+    col.markdown(f"{a_c} 分群組答對率")
     fig = px.bar(grouped_df, x='Rank', y='Percentage', color='Answer', text='percentage_text')
     col.plotly_chart(fig)
     col.markdown(f"{a_c} 答案分布圖")

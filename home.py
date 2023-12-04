@@ -64,6 +64,29 @@ def grouping_2(s_c):
     return s_c.copy(), r_text, s_p, fig, r_text2
 
 
+def grouping_3(s_c):
+    bins = [0, 0.3, 0.6, 0.7, 0.8, 0.9, 1.1]
+    s_c['Rank'] = pd.cut(s_c['Percentage'], bins=bins,
+                         labels=['<30', '30-59', '60-69', '70-79', '80-89', '>90'], right=False)
+    r_text = """### 分群曲線
+    - 先把全年級學生當科答對率(1=100%)，從最低排到最高
+    - 每根bar代表一位學生，移除學號
+    - 分成6群: 每10分為一群"""
+
+    s_c = s_c.drop(['Answer', 'Question'], axis=1)
+    s_p = s_c.copy()
+    s_p = s_p.reset_index(drop=True)
+    s_count = s_p.groupby('Rank').agg({'學號': 'count'})
+    s_count = s_count.reset_index()
+    r_text2 = "各組人數"
+    fig = px.bar(s_count, x='Rank', y='學號', text='學號', color='Rank')
+    # fig.update_traces(textposition='top center')
+    # Set y-axis to start from zero
+    # fig.update_layout(yaxis=dict(range=[0, max(s_count['學號'] + 10)]))
+
+    return s_c.copy(), r_text, s_p, fig, r_text2
+
+
 def callback_analysis(df, a_q, a_c, col):
     df_q = df[(df['Question'] == a_q) & (df['班級'].isin(a_c))]
 
@@ -197,8 +220,10 @@ def layout_main(a_dic, a_sel, g_m, normal_only):
         s_c = s_c.sort_values(by='Percentage', ascending=True)
 
         # Divide students into 6 groups (R1 to R6)
-        if g_m == '一般分法':
+        if g_m == '一般分法(5組)':
             s_c, a_text, s_p, fig2, a_text2 = grouping_2(s_c)
+        elif g_m == '一般分法(6組)':
+            s_c, a_text, s_p, fig2, a_text2 = grouping_3(s_c)
         else:
             s_c, a_text, s_p, fig2, a_text2 = grouping_1(s_c)
 
@@ -249,9 +274,9 @@ if __name__ == '__main__':
     selections.insert(0, "請選擇")
     a_sel = st.sidebar.selectbox("Please select a report", selections)
 
-    g_m = st.sidebar.selectbox("選擇分類法", ['一般分法', '六等分法'])
+    g_m = st.sidebar.selectbox("選擇分類法", ['一般分法(5組)', '一般分法(6組)', '六等分法'])
     n_only = st.sidebar.toggle('普通班分析')
     layout_main(a_dic, a_sel, g_m, n_only)
-    st.sidebar.write('版本 V6.1203_2023')
+    st.sidebar.write('版本 V1.1204_2023')
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

@@ -16,6 +16,26 @@ st.set_page_config(layout="wide")
 pkl_file_path = r'summary.pkl'
 
 
+def dis_index(df):
+    group_size = len(df) // 3
+    df = df.sort_values('Percentage', ascending=True)
+    df['PG'] = pd.cut(np.arange(len(df)),
+                      bins=[-1, group_size, 2 * group_size, len(df)],
+                      labels=['PL', 'PM', 'PH'], include_lowest=True)
+    # st.dataframe(df)
+    df_g = df.groupby(['PG', 'Answer']).agg({'學號': 'count'})
+    df_g['Percentage'] = df_g.groupby(['PG'])['學號'].transform(lambda x: x / x.sum())
+    df_g = df_g.reset_index()
+    df_p = df_g[df_g['Answer'] == '.']
+    df_p = df_p.set_index('PG')
+    ph = round(df_p.loc['PH', 'Percentage'], 3)
+    pl = round(df_p.loc['PL', 'Percentage'], 3)
+    #
+    # st.dataframe(df_p)
+    # st.markdown([ph, pl])
+    return ph, pl
+
+
 def grouping_1(s_c):
     group_size = len(s_c) // 6
     s_c['Rank'] = pd.cut(np.arange(len(s_c)),
@@ -131,7 +151,16 @@ def layout_part_3(df, df_sorted):
 
     # specific question's correct % of the whole class year
     all_p = df_sorted.set_index('Question').loc[a_q, 'percentage_text']
+
     df_qq = df[(df['Question'] == a_q)].copy()
+    # dis_index(df_qq)
+    pa, pb = dis_index(df_qq)
+    all_d = round(pa - pb, 3)
+    st.markdown(f'### 本題的全年級答對率是{all_p}，鑑別率是{all_d}')
+    st.markdown(
+        f"""鑑別率(D)計算方法:分成高中低三個群組，D = 高分組的達對率{pa} - 低分組的答對率{pb}。
+        ([參考Link](https://pedia.cloud.edu.tw/Entry/WikiContent?title=%E9%91%91%E5%88%A5%E5%BA%A6&search=%E9%91%91%E5%88%A5%E5%BA%A6) 
+        一般而言，鑑別度以0.25以上為標準，高於0.4為優良試題)""")
     gg = df_qq.groupby(['班級', 'Answer']).agg({'學號': 'count'})
     gg['Percentage'] = gg.groupby(['班級'])['學號'].transform(lambda x: x / x.sum())
     gg = gg.reset_index()
@@ -277,6 +306,6 @@ if __name__ == '__main__':
     g_m = st.sidebar.selectbox("選擇分類法", ['一般分法(5組)', '一般分法(6組)', '六等分法'])
     n_only = st.sidebar.toggle('普通班分析')
     layout_main(a_dic, a_sel, g_m, n_only)
-    st.sidebar.write('版本 V1.1204_2023')
+    st.sidebar.write('版本 V2.1204_2023')
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

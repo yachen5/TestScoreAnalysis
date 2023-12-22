@@ -1,5 +1,4 @@
 # This is a sample Python script.
-import pickle
 
 import numpy as np
 import pandas as pd
@@ -8,11 +7,12 @@ import streamlit as st
 
 st.set_page_config(layout="wide")
 
+
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 
 # Specify the path to your .pkl file
-pkl_file_path = r'summary.pkl'
+# pkl_file_path = r'../summary.pkl'
 
 
 def dis_index(df):
@@ -293,18 +293,21 @@ def layout_main(a_dic, a_sel, g_m, normal_only):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    with open(pkl_file_path, 'rb') as pkl_file:
-        # Load the data from the Pickle file
-        a_dic = pickle.load(pkl_file)
+    # with open(pkl_file_path, 'rb') as pkl_file:
+    #     # Load the data from the Pickle file
+    #     a_dic = pickle.load(pkl_file)
+    if 'groups' in st.session_state:
+        a_dic = st.session_state.groups
+        selections = list(a_dic.keys())
+        selections.sort()
+        selections.insert(0, "請選擇")
+        a_sel = st.sidebar.selectbox("Please select a report", selections)
 
-    selections = list(a_dic.keys())
-    selections.sort()
-    selections.insert(0, "請選擇")
-    a_sel = st.sidebar.selectbox("Please select a report", selections)
-
-    g_m = st.sidebar.selectbox("選擇分類法", ['一般分法(5組)', '一般分法(6組)', '六等分法'])
-    n_only = st.sidebar.toggle('普通班分析')
-    layout_main(a_dic, a_sel, g_m, n_only)
-    st.sidebar.write('版本 V2.1204_2023')
+        g_m = st.sidebar.selectbox("選擇分類法", ['一般分法(5組)', '一般分法(6組)', '六等分法'])
+        n_only = st.sidebar.toggle('普通班分析')
+        layout_main(a_dic, a_sel, g_m, n_only)
+    else:
+        st.sidebar.write("Please Upload an Excel File first")
+    st.sidebar.write('版本 V1.1222_2023')
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

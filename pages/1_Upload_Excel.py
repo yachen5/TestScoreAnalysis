@@ -4,7 +4,7 @@ from openpyxl import load_workbook
 
 
 def main():
-    st.title("使用 Pandas 上傳和處理 Excel 文件")
+    st.title("使用 Streamlit 上傳和處理 Excel 文件")
 
     # File upload
     excel_file_path = st.file_uploader("選擇一個 Excel 文件", type=["xlsx", "xls"])

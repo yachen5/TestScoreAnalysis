@@ -1,5 +1,7 @@
 import streamlit as st
 
+from PIL import Image
+
 st.markdown("""
 歡迎使用我們的網站！
 
@@ -16,3 +18,9 @@ st.markdown("""
 開始使用吧！上傳您的測驗結果，探索數據，並獲得深入的分析報告。如果您有任何問題，請隨時聯繫我們。
 
 謝謝您選擇這個的工具，我們期待為您提供卓越的數據分析體驗！""")
+
+# Load your PNG image
+image = Image.open("2023-12-23 013246.png")
+
+# Display the image using st.image
+st.image(image, caption='上傳檔案格式如圖', use_column_width=True)

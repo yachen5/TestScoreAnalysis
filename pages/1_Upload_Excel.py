@@ -4,10 +4,10 @@ from openpyxl import load_workbook
 
 
 def main():
-    st.title("Excel File Upload and Processing with Pandas")
+    st.title("使用 Pandas 上傳和處理 Excel 文件")
 
     # File upload
-    excel_file_path = st.file_uploader("Choose an Excel file", type=["xlsx", "xls"])
+    excel_file_path = st.file_uploader("選擇一個 Excel 文件", type=["xlsx", "xls"])
 
     if excel_file_path is not None:
         # Load the Excel workbook

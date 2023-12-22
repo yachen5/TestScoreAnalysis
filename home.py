@@ -23,4 +23,4 @@ st.markdown("""
 image = Image.open("2023-12-23 013246.png")
 
 # Display the image using st.image
-st.image(image, caption='上傳檔案格式如圖', use_column_width=True)
+st.image(image, caption='上傳檔案格式如圖', width=500)

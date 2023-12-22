@@ -289,6 +289,7 @@ def layout_main(a_dic, a_sel, g_m, normal_only):
 
         st.divider()
         layout_part_3(df, df_sorted)
+        st.success("完成!")
 
 
 # Press the green button in the gutter to run the script.
@@ -307,7 +308,7 @@ if __name__ == '__main__':
         n_only = st.sidebar.toggle('普通班分析')
         layout_main(a_dic, a_sel, g_m, n_only)
     else:
-        st.sidebar.write("Please Upload an Excel File first")
+        st.warning("請回到前一步驟，上傳Excel文件")
     st.sidebar.write('版本 V1.1222_2023')
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

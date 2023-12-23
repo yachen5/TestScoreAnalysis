@@ -1,7 +1,5 @@
 import streamlit as st
 
-from PIL import Image
-
 st.markdown("""
 **(以下文字由ChatGPT提供)**
 
@@ -20,10 +18,3 @@ st.markdown("""
 謝謝您選擇這個的工具，我們期待為您提供卓越的數據分析體驗！
 
 """)
-
-# Load your PNG image
-image = Image.open("2023-12-23 013246.png")
-
-# Display the image using st.image
-
-st.image(image, caption='上傳檔案格式如圖', width=800)

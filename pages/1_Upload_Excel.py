@@ -1,10 +1,18 @@
 import pandas as pd
 import streamlit as st
+from PIL import Image
 from openpyxl import load_workbook
 
 
 def main():
     st.title("使用 Streamlit 上傳和處理 Excel 文件")
+
+    # Load your PNG image
+    image = Image.open("2023-12-23 013246.png")
+
+    # Display the image using st.image
+
+    st.image(image, caption='上傳檔案格式如圖', width=800)
 
     # File upload
     excel_file_path = st.file_uploader("選擇一個 Excel 文件", type=["xlsx", "xls"])

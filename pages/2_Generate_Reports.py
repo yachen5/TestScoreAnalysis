@@ -313,7 +313,7 @@ def layout_by_class(df, s_c):
     col2.write("\n歸納總結:\n")
     col2.write(text_summary_mean)
     col2.write(text_summary_median)
-    fig = px.box(df_box, x='班級', y='Percentage', points='all', color='班級', width=900)
+    fig = px.box(df_box, x='班級', y='Percentage', points='all', color='班級', width=1200)
     st.markdown('### 箱型圖')
     st.plotly_chart(fig)
 

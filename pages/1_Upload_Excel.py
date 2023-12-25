@@ -1,7 +1,12 @@
+import datetime
+
 import pandas as pd
 import streamlit as st
 from PIL import Image
 from openpyxl import load_workbook
+
+import config2 as cf
+from LocalApps import AirtableTools as at
 
 
 def main():
@@ -13,6 +18,13 @@ def main():
     # Display the image using st.image
 
     st.image(image, caption='上傳檔案格式如圖', width=800)
+    col1, col2 = st.columns(2)
+    test_date = col1.date_input("本次考試日期為?", datetime.datetime.today())
+    test_date = test_date.isoformat()
+
+    # Disable this function
+    db_check = False
+    # db_check = col2.checkbox('Load to DB', value=False)
 
     # File upload
     excel_file_path = st.file_uploader("選擇一個 Excel 文件", type=["xlsx", "xls"])
@@ -49,6 +61,34 @@ def main():
 
         df = pd.concat(li, ignore_index=True)
         df['年級_科目'] = df['年級'] + '_' + df['科目代號']
+        df['考試日期'] = test_date
+        df['年級'] = df['年級'].astype(int)
+        df['班級'] = df['班級'].astype(str)
+        df['座號'] = df['座號'].astype(str)
+
+        if db_check:
+            st.spinner('Process')
+            grade_list = list(df['年級'].unique())
+            for a_grade in grade_list:
+                st.write(a_grade)
+                if a_grade == 1:
+                    base_name = cf.base_id_7
+                elif a_grade == 2:
+                    base_name = cf.base_id_8
+                elif a_grade == 3:
+                    base_name = cf.base_id_9
+                else:
+                    st.error('無法判斷年級')
+                at.delete_data(base_name)
+                temp_df = df[df['年級'] == a_grade]
+                at.batch_write_data(temp_df, base_name)
+
+        # for airtable testing purpose
+        # i_list = list(df['年級_科目'].unique())
+        # for a_sub in i_list:
+        #     df_temp = df[df['年級_科目'] == a_sub]
+        #     df_temp.to_csv(a_sub + '.csv')
+
         # Split the 'original_column' into individual characters
         df_split = df['答題對錯'].apply(lambda x: pd.Series(list(x)))
 

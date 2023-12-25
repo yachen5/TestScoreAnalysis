@@ -118,7 +118,7 @@ def main():
             result_dict[value] = filtered_df
 
         st.session_state.groups = result_dict
-        st.success('Excel 檔案已經上傳到記憶體，可以進行下一步分析')
+        st.success('Excel 檔案已經暫存到記憶體，可以進行下一步分析')
 
 
 if __name__ == '__main__':

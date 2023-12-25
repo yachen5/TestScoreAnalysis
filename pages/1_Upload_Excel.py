@@ -5,7 +5,6 @@ import streamlit as st
 from PIL import Image
 from openpyxl import load_workbook
 
-import config2 as cf
 from LocalApps import AirtableTools as at
 
 
@@ -72,11 +71,11 @@ def main():
             for a_grade in grade_list:
                 st.write(a_grade)
                 if a_grade == 1:
-                    base_name = cf.base_id_7
+                    base_name = st.secrets["base_id_7"]
                 elif a_grade == 2:
-                    base_name = cf.base_id_8
+                    base_name = st.secrets["base_id_8"]
                 elif a_grade == 3:
-                    base_name = cf.base_id_9
+                    base_name = st.secrets["base_id_9"]
                 else:
                     st.error('無法判斷年級')
                 at.delete_data(base_name)

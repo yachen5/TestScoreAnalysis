@@ -315,6 +315,7 @@ def layout_by_class(df, s_c):
     col2.write(text_summary_median)
     fig = px.box(df_box, x='班級', y='Percentage', points='all', color='班級', width=900)
     st.markdown('### 箱型圖')
+    fig.update_traces(boxmean=True)
     st.plotly_chart(fig)
 
 

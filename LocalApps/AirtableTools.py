@@ -2,11 +2,11 @@ import pandas as pd
 import streamlit as st
 from pyairtable import Api
 
-import config2 as cf
-
 try:
     api = Api(st.secrets["AIRTABLE_API_KEY"])
 except FileNotFoundError:
+    import config2 as cf
+
     api = Api(cf.AIRTABLE_API_KEY)
 
 

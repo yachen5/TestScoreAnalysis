@@ -2,9 +2,12 @@ import pandas as pd
 import streamlit as st
 from pyairtable import Api
 
-# import config2 as cf
+import config2 as cf
 
-api = Api(st.secrets["AIRTABLE_API_KEY"])
+try:
+    api = Api(st.secrets["AIRTABLE_API_KEY"])
+except FileNotFoundError:
+    api = Api(cf.AIRTABLE_API_KEY)
 
 
 def write_data(adf, base_name):

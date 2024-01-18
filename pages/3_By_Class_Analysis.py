@@ -17,7 +17,7 @@ def layout_main():
         a_class = a_dic[a_selection]
         # st.write(a_class.class_numbers)
         # st.dataframe(a_class.students)
-        subject_list = col2.multiselect("請選擇科目", a_class.subjects)
+        subject_list = col2.multiselect("請選擇科目 (可複選)", a_class.subjects)
         col_list = [col1, col2]
         count = 0
         for a_subject in subject_list:

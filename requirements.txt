@@ -3,6 +3,6 @@ pandas~=2.1.1
 streamlit~=1.30.0
 plotly-express==0.4.1
 openpyxl~=3.1.2
-Pillow=>=10.2.0
+Pillow~=10.2.0
 st-pages~=0.4.5
 pyairtable~=2.2.1

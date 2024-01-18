@@ -6,6 +6,7 @@ from PIL import Image
 from openpyxl import load_workbook
 
 from LocalApps import AirtableTools as at
+from LocalApps import SharedObjects
 
 
 def main():
@@ -115,9 +116,18 @@ def main():
         for value in unique_values:
             filtered_df = melted_df[melted_df['年級_科目'] == value].copy()
             st.write(f'Processing {value}')
-            result_dict[value] = filtered_df
+            result_dict[value] = SharedObjects.Subject(filtered_df)
 
-        st.session_state.groups = result_dict
+        st.session_state.subjects = result_dict
+
+        class_dict = {}
+        classes = list(melted_df['班級'].unique())
+
+        for a_class in classes:
+            class_dict[a_class] = SharedObjects.Class(melted_df[melted_df['班級'] == a_class].copy())
+            st.write(f'Processing 班級 {a_class}')
+
+        st.session_state['class_groups'] = class_dict
         st.success('Excel 檔案已經暫存到記憶體，準備進行下一步分析')
 
 

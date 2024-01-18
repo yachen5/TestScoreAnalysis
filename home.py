@@ -11,8 +11,8 @@ show_pages(
     [
         Page("home.py", "Home", ":school:"),
         Page("pages/1_Upload_Excel.py", "上傳Excel檔案", ":green_book:"),
-        Page("pages/2_Generate_Reports.py", "產生報表與分析", ":bar_chart:"),
-        Page("pages/3_to_be_added.py", "導師專區(建構中)", ":triangular_ruler:"),
+        Page("pages/2_Generate_Reports.py", "科任老師報表與分析", ":bar_chart:"),
+        Page("pages/3_By_Class_Analysis.py", "導師專區(建構中)", ":triangular_ruler:"),
     ]
 )
 
@@ -33,4 +33,5 @@ st.markdown("""
 
 謝謝您選擇這個的工具，我們期待為您提供卓越的數據分析體驗！
 
+版本 V1.0116_2024
 """)

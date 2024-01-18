@@ -213,10 +213,9 @@ def layout_part_2(df):
 
 
 def layout_main(a_dic, a_sel, g_m, normal_only):
-    if a_sel == "請選擇":
-        st.markdown("# <--- 按箭頭來展開 sidebar")
-    else:
-        df = a_dic[a_sel]
+    if a_sel != "請選擇":
+
+        df = a_dic[a_sel].df.copy()
         class_year = df['年級'].iloc[0]
         subj = df['科目代號'].iloc[0]
         # st.dataframe(df)
@@ -324,18 +323,20 @@ if __name__ == '__main__':
     # with open(pkl_file_path, 'rb') as pkl_file:
     #     # Load the data from the Pickle file
     #     a_dic = pickle.load(pkl_file)
-    if 'groups' in st.session_state:
-        a_dic = st.session_state.groups
+    if 'subjects' in st.session_state:
+        a_dic = st.session_state.subjects
         selections = list(a_dic.keys())
         selections.sort()
         selections.insert(0, "請選擇")
-        a_sel = st.sidebar.selectbox("Please select a report", selections)
+        col1, col2, col3 = st.columns(3)
+        a_sel = col1.selectbox("Please select a report", selections)
 
-        g_m = st.sidebar.selectbox("選擇分類法", ['一般分法(5組)', '一般分法(6組)', '六等分法'])
-        n_only = st.sidebar.toggle('普通班分析')
+        g_m = col2.selectbox("選擇分類法", ['一般分法(5組)', '一般分法(6組)', '六等分法'])
+        # n_only = col3.toggle('普通班分析')
+        n_only = False
         layout_main(a_dic, a_sel, g_m, n_only)
     else:
         st.warning("請回到前一步驟，上傳Excel文件")
-    st.sidebar.write('版本 V1.1222_2023')
+    # st.sidebar.write('版本 V1.1222_2023')
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

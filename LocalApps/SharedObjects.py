@@ -89,7 +89,7 @@ class Class:
     def __init__(self, df):
         # df2 = df.copy()
         self.subjects = list(df['年級_科目'].unique())
-        df = df[['班級', '座號', '姓名', '學號']]
+        df = df[['班級', '座號', '學號']]
         df = df.drop_duplicates(subset=['學號'])
         self.students = df.copy()
         self.class_numbers = list(self.students['學號'].unique())

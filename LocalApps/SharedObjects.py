@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import plotly_express as px
 
 
 class Subject:
@@ -19,6 +20,40 @@ class Subject:
         s_c = s_df[s_df['Answer'] == '.']
         self.idv_score = s_c.copy()
         s_c = s_c.sort_values(by='Percentage', ascending=True)
+
+    def correct_rate(self, id_list, exclude=True):
+        df = self.df.copy()
+        in_list = df['學號'].isin(id_list)
+        if exclude:
+            df = df[~in_list]
+        else:
+            df = df[in_list]
+
+        grouped_df = df.groupby(['年級', 'Question', 'Answer']).agg({'學號': 'count'})
+        grouped_df['Percentage'] = grouped_df.groupby(['年級', 'Question'])['學號'].transform(lambda x: x / x.sum())
+        grouped_df = grouped_df.reset_index()
+        grouped_df['percentage_text'] = grouped_df['Percentage'].apply(lambda x: f'{int(x * 100)}%')
+        df_1 = grouped_df.copy()
+        df_a = df_1[df_1['Answer'] == '.'].copy()
+        return df_a
+        # # df_1 = df_1.sort_values(by='Answer')
+        # category_order = list(df_1['Question'].unique()).sort()
+        # fig = px.bar(df_1, x='Question', y='Percentage', color='Answer', text='percentage_text', facet_row='年級',
+        #              width=1200, height=600, category_orders={'Question': category_order})
+        # st.markdown('### 各題答案分布')
+        # st.markdown("\t .\t-----> 回答正確")
+        # st.markdown("\t =\t-----> 空白未作答")
+        # st.plotly_chart(fig)
+        # df_a = df_1[df_1['Answer'] == '.'].copy()
+        # df_a = df_a.drop(['學號', 'Answer'], axis=1)
+        #
+        # df_sorted = df_a.sort_values(by='Percentage')
+        #
+        # fig = px.bar(df_sorted, x='Question', y='Percentage', text='percentage_text', color='Percentage', width=1200,
+        #              height=600, color_continuous_scale=["red", "green"])
+        # st.markdown('### 各題 依答對率排序')
+        # st.plotly_chart(fig)
+        # return df_sorted
 
     def grouping_1(self):
         s_c = self.idv_score.copy()
@@ -58,3 +93,36 @@ class Class:
         df = df.drop_duplicates(subset=['學號'])
         self.students = df.copy()
         self.class_numbers = list(self.students['學號'].unique())
+
+
+def callback_analysis(df, a_q, a_c, col):
+    df_q = df[(df['Question'] == a_q) & (df['班級'].isin(a_c))]
+
+    # st.dataframe(df_q)
+    grouped_df = df_q.groupby(['Rank', 'Answer']).agg({'學號': 'count'})
+    grouped_df['Percentage'] = grouped_df.groupby(['Rank'])['學號'].transform(lambda x: x / x.sum())
+    grouped_df = grouped_df.reset_index()
+    grouped_df['Percentage'] = grouped_df['Percentage'].fillna(0)
+    grouped_df['percentage_text'] = grouped_df['Percentage'].apply(lambda x: f'{int(x * 100)}%')
+    # Display the grouped DataFrame with counts
+    # st.dataframe(grouped_df)
+
+    df_p = df_q.copy()
+    df_pp = df_p.groupby('Answer').agg({'學號': 'count'})
+    df_pp['Percentage'] = df_pp['學號'].transform(lambda x: x / len(df_q))
+    df_pp = df_pp.reset_index()
+    df_pp['percentage_text'] = df_pp['Percentage'].apply(lambda x: f'{int(x * 100)}%')
+    df_pp = df_pp.sort_values(by='Answer')
+
+    # get correct
+    cor_p = df_pp.copy()
+    cor_p = cor_p.set_index('Answer')
+    cp_value = cor_p.loc['.', 'percentage_text']
+    col.markdown(f'此組分類正確率:{cp_value}')
+
+    col.markdown(f"{a_c} 分群組答對率")
+    fig = px.bar(grouped_df, x='Rank', y='Percentage', color='Answer', text='percentage_text')
+    col.plotly_chart(fig)
+    col.markdown(f"{a_c} 答案分布圖")
+    fig = px.bar(df_pp, x='Answer', y='Percentage', color='Answer', text='percentage_text')
+    col.plotly_chart(fig)

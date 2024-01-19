@@ -36,6 +36,37 @@ def layout_main():
             df_desc = df.groupby(['Groups'])['Percentage'].describe()
             a_col.markdown('統計表')
             a_col.dataframe(df_desc)
+
+            q_correct = subject_class.correct_rate(a_class.class_numbers, True)
+            q_correct['Group'] = '其他班'
+            q_correct2 = subject_class.correct_rate(a_class.class_numbers, False)
+            q_correct2['Group'] = a_selection
+
+            df_merge = q_correct.merge(q_correct2, on=['Question'], how='left')
+            # a_col.dataframe(df_merge)
+            a_col.write("""
+            柱狀圖示本班各題的答對率
+            
+            Delta是本班答對率 減掉 其他班答對率  >0:本班較佳 <0:其他班較佳
+            
+            顏色越紅，該題建議重點複習!
+            """)
+            df_merge['Delta'] = df_merge['Percentage_y'] - df_merge['Percentage_x']
+            df_merge = df_merge[['Question', 'Delta']]
+            q_correct2 = q_correct2.merge(df_merge, on='Question', how='left')
+            # a_col.dataframe(df_merge)
+            # q_c_all = pd.concat([q_correct, q_correct2], ignore_index=True)
+            custom_color_scale = [
+                (-0.5, 'red'),
+                (0, 'lightgrey'),
+                (0.5, 'green')]
+            fig = px.bar(q_correct2, x='Question', y='Percentage', text='percentage_text', color='Delta',
+                         color_continuous_scale=[(0, "red"), (0.5, "lightgray"), (1, "green")],
+                         color_continuous_midpoint=0)
+            # fig.add_trace(px.line(df_merge, x='Question', y='Delta', color_discrete_sequence=['red']).data[0])
+            a_col.plotly_chart(fig)
+            # st.dataframe(q_correct)
+
             count += 1
 
 

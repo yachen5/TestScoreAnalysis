@@ -5,6 +5,8 @@ import pandas as pd
 import plotly_express as px
 import streamlit as st
 
+from LocalApps.SharedObjects import callback_analysis
+
 st.set_page_config(layout="wide")
 
 
@@ -104,39 +106,6 @@ def grouping_3(s_c):
     # fig.update_layout(yaxis=dict(range=[0, max(s_count['學號'] + 10)]))
 
     return s_c.copy(), r_text, s_p, fig, r_text2
-
-
-def callback_analysis(df, a_q, a_c, col):
-    df_q = df[(df['Question'] == a_q) & (df['班級'].isin(a_c))]
-
-    # st.dataframe(df_q)
-    grouped_df = df_q.groupby(['Rank', 'Answer']).agg({'學號': 'count'})
-    grouped_df['Percentage'] = grouped_df.groupby(['Rank'])['學號'].transform(lambda x: x / x.sum())
-    grouped_df = grouped_df.reset_index()
-    grouped_df['Percentage'] = grouped_df['Percentage'].fillna(0)
-    grouped_df['percentage_text'] = grouped_df['Percentage'].apply(lambda x: f'{int(x * 100)}%')
-    # Display the grouped DataFrame with counts
-    # st.dataframe(grouped_df)
-
-    df_p = df_q.copy()
-    df_pp = df_p.groupby('Answer').agg({'學號': 'count'})
-    df_pp['Percentage'] = df_pp['學號'].transform(lambda x: x / len(df_q))
-    df_pp = df_pp.reset_index()
-    df_pp['percentage_text'] = df_pp['Percentage'].apply(lambda x: f'{int(x * 100)}%')
-    df_pp = df_pp.sort_values(by='Answer')
-
-    # get correct
-    cor_p = df_pp.copy()
-    cor_p = cor_p.set_index('Answer')
-    cp_value = cor_p.loc['.', 'percentage_text']
-    col.markdown(f'此組分類正確率:{cp_value}')
-
-    col.markdown(f"{a_c} 分群組答對率")
-    fig = px.bar(grouped_df, x='Rank', y='Percentage', color='Answer', text='percentage_text')
-    col.plotly_chart(fig)
-    col.markdown(f"{a_c} 答案分布圖")
-    fig = px.bar(df_pp, x='Answer', y='Percentage', color='Answer', text='percentage_text')
-    col.plotly_chart(fig)
 
 
 def layout_part_3(df, df_sorted):

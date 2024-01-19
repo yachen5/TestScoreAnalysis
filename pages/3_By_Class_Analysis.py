@@ -1,6 +1,7 @@
 import plotly_express as px
 import streamlit as st
 
+st.set_page_config(layout="wide")
 st.markdown("""
             持續開發中，敬請期待!""")
 

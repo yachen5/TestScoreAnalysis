@@ -3,13 +3,19 @@ import pandas as pd
 import plotly_express as px
 
 
+def top_error_questions(group):
+    return group.nlargest(5, 'Percentage')
+
+
 class Subject:
     def __init__(self, df):
+        self.error_rank = None
         self.r_text = None
         self.idv_score = None
         self.df = df
         self.question_count = len(list(self.df['Question'].unique()))
         self.student_scores()
+        self.error_rank_by_student_top5()
 
     def student_scores(self):
         # Group by to get % correct by student
@@ -21,8 +27,21 @@ class Subject:
         self.idv_score = s_c.copy()
         s_c = s_c.sort_values(by='Percentage', ascending=True)
 
+    def error_rank_by_student_top5(self):
+        df = self.df[self.df['Answer'] != '.'].copy()
+        correct_all = self.correct_rate([''], True)
+        df_m = df.merge(correct_all, on=['Question'], how='left')
+        # print(df_m.columns)
+        # 暫時不Rank 全部都列入
+        #                 df_g = df_m.groupby('學號').apply(top_error_questions)
+        #                 # print(df_g)
+        #                 # use drop = True because the above apply method maintain the 學號 column. This is to avoid error
+        #                 df_g = df_g.reset_index(drop=True)
+        self.error_rank = df_m.copy()
+
     def correct_rate(self, id_list, exclude=True):
         df = self.df.copy()
+        # print(df)
         in_list = df['學號'].isin(id_list)
         if exclude:
             df = df[~in_list]
@@ -35,6 +54,7 @@ class Subject:
         grouped_df['percentage_text'] = grouped_df['Percentage'].apply(lambda x: f'{int(x * 100)}%')
         df_1 = grouped_df.copy()
         df_a = df_1[df_1['Answer'] == '.'].copy()
+        df_a = df_a.drop(columns=['年級', '學號', 'Answer'])
         return df_a
         # # df_1 = df_1.sort_values(by='Answer')
         # category_order = list(df_1['Question'].unique()).sort()
@@ -93,6 +113,7 @@ class Class:
         df = df.drop_duplicates(subset=['學號'])
         self.students = df.copy()
         self.class_numbers = list(self.students['學號'].unique())
+        self.class_numbers.sort()
 
 
 def callback_analysis(df, a_q, a_c, col):

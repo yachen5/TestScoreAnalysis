@@ -68,6 +68,7 @@ def layout_main():
             df_ek = subject_class.error_rank.copy()
             li_ek.append(df_ek)
             count += 1
+            a_col.divider()
 
         if len(subject_list) > 0:
             st.markdown("""

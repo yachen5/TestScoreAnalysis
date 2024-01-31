@@ -24,7 +24,7 @@ def overview():
 
 謝謝您選擇這個的工具，我們期待為您提供卓越的數據分析體驗！
 
-版本 V1.0116_2024
+版本 V1.0131_2024
 """)
 
 
@@ -36,7 +36,7 @@ with st.sidebar.container():
             sac.MenuItem('科任老師報表與分析', icon='bar-chart-line', description='分科報告'),
             sac.MenuItem('導師報表與分析', icon='graph-up-arrow', description='分班報告'),
         ]),
-    ], open_all=True, color='red')
+    ], open_all=True, color='blue')
 
 if menu == 'Home':
     overview()

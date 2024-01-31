@@ -7,7 +7,8 @@ import streamlit as st
 
 from LocalApps.SharedObjects import callback_analysis
 
-st.set_page_config(layout="wide")
+
+# st.set_page_config(layout="wide")
 
 
 # Press Shift+F10 to execute it or replace it with your code.
@@ -287,11 +288,7 @@ def layout_by_class(df, s_c):
     st.plotly_chart(fig)
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    # with open(pkl_file_path, 'rb') as pkl_file:
-    #     # Load the data from the Pickle file
-    #     a_dic = pickle.load(pkl_file)
+def main():
     if 'subjects' in st.session_state:
         a_dic = st.session_state.subjects
         selections = list(a_dic.keys())
@@ -306,6 +303,14 @@ if __name__ == '__main__':
         layout_main(a_dic, a_sel, g_m, n_only)
     else:
         st.warning("請回到前一步驟，上傳Excel文件")
+
+
+# Press the green button in the gutter to run the script.
+if __name__ == '__main__':
+    # with open(pkl_file_path, 'rb') as pkl_file:
+    #     # Load the data from the Pickle file
+    #     a_dic = pickle.load(pkl_file)
+    main()
     # st.sidebar.write('版本 V1.1222_2023')
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

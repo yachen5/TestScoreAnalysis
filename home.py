@@ -1,22 +1,13 @@
 import streamlit as st
+import streamlit_antd_components as sac
 
-from st_pages import Page, show_pages
+from Subpages import By_Class_Analysis, Generate_Reports, Upload_Excel
 
-# Optional -- adds the title and icon to the current page
-# add_page_title()
+st.set_page_config(layout="wide")
 
-# Specify what pages should be shown in the sidebar, and what their titles and icons
-# should be
-show_pages(
-    [
-        Page("home.py", "Home", ":school:"),
-        Page("pages/1_Upload_Excel.py", "上傳Excel檔案", ":green_book:"),
-        Page("pages/2_Generate_Reports.py", "科任老師報表與分析", ":bar_chart:"),
-        Page("pages/3_By_Class_Analysis.py", "導師專區", ":triangular_ruler:"),
-    ]
-)
 
-st.markdown("""
+def overview():
+    st.markdown("""
 **(以下文字由ChatGPT提供)**
 
 歡迎使用我們的網站！
@@ -35,3 +26,31 @@ st.markdown("""
 
 版本 V1.0116_2024
 """)
+
+
+with st.sidebar.container():
+    menu = sac.menu([
+        sac.MenuItem('Home', icon='house-fill', tag=[sac.Tag('Redesign', color='green')]),
+        sac.MenuItem('上傳Excel檔案', icon='filetype-xlsx'),
+        sac.MenuItem('分析工具', icon='clipboard-data', children=[
+            sac.MenuItem('科任老師報表與分析', icon='bar-chart-line', description='分科報告'),
+            sac.MenuItem('導師報表與分析', icon='graph-up-arrow', description='分班報告'),
+        ]),
+    ], open_all=True, color='red')
+
+if menu == 'Home':
+    overview()
+elif menu == '上傳Excel檔案':
+    Upload_Excel.main()
+elif menu == '科任老師報表與分析':
+    Generate_Reports.main()
+elif menu == '導師報表與分析':
+    By_Class_Analysis.main()
+    # show_pages(
+    #     [
+    #         Page("home.py", "Home", ":school:"),
+    #         Page("Subpages/Upload_Excel.py", "上傳Excel檔案", ":green_book:"),
+    #         Page("Subpages/Generate_Reports.py", "科任老師報表與分析", ":bar_chart:"),
+    #         Page("Subpages/By_Class_Analysis.py", "導師專區", ":triangular_ruler:"),
+    #     ]
+    # )

@@ -162,6 +162,15 @@ def layout_part_2(df):
     return df_sorted
 
 
+def color_based_on_conditions(row):
+    if row['P_Category'] == 'L' and row['D_Category'] == 'L':
+        return 'red'
+    elif row['P_Category'] == 'L' or row['D_Category'] == 'L':
+        return 'yellow'
+    else:
+        return 'green'
+
+
 def layout_main(a_dic, a_sel):
     if a_sel != "請選擇":
         a_subject = a_dic[a_sel]
@@ -174,9 +183,26 @@ def layout_main(a_dic, a_sel):
 
         df_m = a_subject.correct_rate_all.merge(a_subject.distinguish_rate, on=['Question'], how='left')
 
+        threshold_high = 0.8
+        threshold_medium = 0.6
+
+        # Use np.select to create a new column based on conditions
+        df_m['P_Category'] = pd.cut(df_m['Percentage'],
+                                    bins=[-float('inf'), threshold_medium, threshold_high, float('inf')],
+                                    labels=['L', 'M', 'H'])
+
+        threshold_high = 0.4
+        threshold_medium = 0.25
+
+        # Use np.select to create a new column based on conditions
+        df_m['D_Category'] = pd.cut(df_m['Delta'], bins=[-float('inf'), threshold_medium, threshold_high, float('inf')],
+                                    labels=['L', 'M', 'H'])
+        df_m['Color'] = df_m.apply(color_based_on_conditions, axis=1)
+
         st.dataframe(df_m)
 
         fig = px.scatter(df_m, x='Percentage', y='Delta', title='答對率-鑑別率 Scatter Plot', text='Question',
+                         color='Color',
                          labels={'題目': 'Question', '答對率': 'X-axis', '鑑別率': 'Y-axis'})
         fig.update_traces(textposition='middle right')
         fig.update_xaxes(title_text='答對率')

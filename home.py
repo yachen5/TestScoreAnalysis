@@ -1,9 +1,10 @@
 import streamlit as st
 import streamlit_antd_components as sac
 
-from Subpages import By_Class_Analysis, Generate_Reports, Upload_Excel
+from Subpages import By_Class_Analysis, By_Subject_Analysis, Upload_Excel, Generate_Report
 
-st.set_page_config(layout="wide")
+
+# st.set_page_config(layout="wide")
 
 
 def overview():
@@ -33,8 +34,12 @@ with st.sidebar.container():
         sac.MenuItem('Home', icon='house-fill', tag=[sac.Tag('Redesign', color='green')]),
         sac.MenuItem('上傳Excel檔案', icon='filetype-xlsx'),
         sac.MenuItem('分析工具', icon='clipboard-data', children=[
-            sac.MenuItem('科任老師報表與分析', icon='bar-chart-line', description='分科報告'),
-            sac.MenuItem('導師報表與分析', icon='graph-up-arrow', description='分班報告'),
+            sac.MenuItem('科任老師報表與分析', icon='bar-chart-line', description=''),
+            sac.MenuItem('導師報表與分析', icon='diagram-3', description=''),
+        ]),
+        sac.MenuItem('輸出檔案', icon='filetype-pdf', children=[
+            sac.MenuItem('分科報告', icon='bar-chart-line-fill'),
+            sac.MenuItem('分班報告', icon='diagram-3-fill', description=''),
         ]),
     ], open_all=True, color='blue')
 
@@ -43,14 +48,18 @@ if menu == 'Home':
 elif menu == '上傳Excel檔案':
     Upload_Excel.main()
 elif menu == '科任老師報表與分析':
-    Generate_Reports.main()
+    By_Subject_Analysis.main()
 elif menu == '導師報表與分析':
     By_Class_Analysis.main()
+elif menu == '分科報告':
+    Generate_Report.main()
+elif menu == '分班報告':
+    Generate_Report.tbd()
     # show_pages(
     #     [
     #         Page("home.py", "Home", ":school:"),
     #         Page("Subpages/Upload_Excel.py", "上傳Excel檔案", ":green_book:"),
-    #         Page("Subpages/Generate_Reports.py", "科任老師報表與分析", ":bar_chart:"),
+    #         Page("Subpages/By_Subject_Analysis.py", "科任老師報表與分析", ":bar_chart:"),
     #         Page("Subpages/By_Class_Analysis.py", "導師專區", ":triangular_ruler:"),
     #     ]
     # )

@@ -115,6 +115,7 @@ def main():
 
         for value in unique_values:
             filtered_df = melted_df[melted_df['年級_科目'] == value].copy()
+            filtered_df = filtered_df.dropna(subset='Answer')
             st.write(f'Processing {value}')
             result_dict[value] = SharedObjects.Subject(filtered_df)
 

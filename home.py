@@ -3,7 +3,8 @@ import streamlit_antd_components as sac
 
 from Subpages import By_Class_Analysis, By_Subject_Analysis, Upload_Excel, Generate_Report
 
-st.set_page_config(layout="wide")
+
+# st.set_page_config(layout="wide")
 
 
 def overview():

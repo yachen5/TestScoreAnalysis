@@ -176,7 +176,7 @@ def layout_main(a_dic, a_sel):
 
         st.dataframe(df_m)
 
-        fig = px.scatter(df_m, x='Percentage', y='Delta', title='X-Y Scatter Plot', text='Question',
+        fig = px.scatter(df_m, x='Percentage', y='Delta', title='答對率-鑑別率 Scatter Plot', text='Question',
                          labels={'題目': 'Question', '答對率': 'X-axis', '鑑別率': 'Y-axis'})
         fig.update_traces(textposition='middle right')
         fig.update_xaxes(title_text='答對率')

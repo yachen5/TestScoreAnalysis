@@ -24,7 +24,7 @@ def layout_main():
         col_list = [col1, col2]
         count = 0
         for a_subject in subject_list:
-            a_col = col_list[count % 2]
+            a_col = col_list[count % 1]
             subject_class = subjects[a_subject]
             df = subject_class.idv_score.copy()
             df['Percentage'] = round(df['Percentage'] * 100, )

@@ -39,7 +39,9 @@ with st.sidebar.container():
         ]),
         sac.MenuItem('輸出檔案', icon='filetype-pdf', children=[
             sac.MenuItem('分科報告', icon='bar-chart-line-fill'),
-            sac.MenuItem('分班報告', icon='diagram-3-fill', description=''),
+            # sac.MenuItem('分班報告', icon='diagram-3-fill', description=''),
+            sac.MenuItem('分班報告', icon='cone-striped', description=''),
+
         ]),
     ], open_all=True, color='blue')
 

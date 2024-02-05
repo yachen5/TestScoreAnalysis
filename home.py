@@ -3,8 +3,7 @@ import streamlit_antd_components as sac
 
 from Subpages import By_Class_Analysis, By_Subject_Analysis, Upload_Excel, Generate_Report
 
-
-# st.set_page_config(layout="wide")
+st.set_page_config(layout="wide")
 
 
 def overview():
@@ -25,7 +24,7 @@ def overview():
 
 謝謝您選擇這個的工具，我們期待為您提供卓越的數據分析體驗！
 
-版本 V1.0131_2024
+版本 V1.0206_2024
 """)
 
 

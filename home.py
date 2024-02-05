@@ -29,15 +29,17 @@ def overview():
 
 
 with st.sidebar.container():
+    re_tag = sac.Tag('Redesign', color='green')
+    new_tag = sac.Tag('New', color='green')
     menu = sac.menu([
-        sac.MenuItem('Home', icon='house-fill', tag=[sac.Tag('Redesign', color='green')]),
+        sac.MenuItem('Home', icon='house-fill', tag=[re_tag]),
         sac.MenuItem('上傳Excel檔案', icon='filetype-xlsx'),
         sac.MenuItem('分析工具', icon='clipboard-data', children=[
             sac.MenuItem('科任老師報表與分析', icon='bar-chart-line', description=''),
             sac.MenuItem('導師報表與分析', icon='diagram-3', description=''),
         ]),
         sac.MenuItem('輸出檔案', icon='filetype-pdf', children=[
-            sac.MenuItem('分科報告', icon='bar-chart-line-fill'),
+            sac.MenuItem('分科報告', icon='bar-chart-line-fill', tag=[new_tag]),
             # sac.MenuItem('分班報告', icon='diagram-3-fill', description=''),
             sac.MenuItem('分班報告', icon='cone-striped', description=''),
 

@@ -10,6 +10,7 @@ def top_error_questions(group):
 
 class Subject:
     def __init__(self, df):
+        self.q_by_answer = None
         self.distinguish_rate = None
         self.error_rank = None
         self.r_text = None
@@ -18,7 +19,7 @@ class Subject:
         self.question_count = len(list(self.df['Question'].unique()))
         self.student_scores()
         self.correct_rate_all = self.correct_rate([''], exclude=True)
-        self.error_rank_by_student_all()
+        self.calculate_error_rank_by_student_all()
         self.get_distinguish_rate()
 
     def student_scores(self):
@@ -38,7 +39,7 @@ class Subject:
 
         s_c = s_c.sort_values(by='Percentage', ascending=True)
 
-    def error_rank_by_student_all(self):
+    def calculate_error_rank_by_student_all(self):
         # Each student answers certain questions incorrectly. Get the correction rate of the whole group and link to
         # the incorrectly answered questions.
         df = self.df[self.df['Answer'] != '.'].copy()
@@ -68,6 +69,7 @@ class Subject:
         grouped_df = grouped_df.reset_index()
         grouped_df['percentage_text'] = grouped_df['Percentage'].apply(lambda x: f'{int(x * 100)}%')
         df_1 = grouped_df.copy()
+        self.q_by_answer = df_1.copy()
         df_a = df_1[df_1['Answer'] == '.'].copy()
         df_a = df_a.drop(columns=['年級', '學號', 'Answer'])
         return df_a.copy()
@@ -90,6 +92,25 @@ class Subject:
         df_pivot.reset_index()
         self.distinguish_rate = df_pivot.copy()
         # ic(df)
+
+    def build_question_matrix(self):
+        df_m = self.correct_rate_all.merge(self.distinguish_rate, on=['Question'], how='left')
+
+        threshold_high = 0.75
+        threshold_medium = 0.5
+
+        # Use np.select to create a new column based on conditions
+        df_m['P_Category'] = pd.cut(df_m['Percentage'],
+                                    bins=[-float('inf'), threshold_medium, threshold_high, float('inf')],
+                                    labels=['L', 'M', 'H'])
+
+        threshold_high = 0.4
+        threshold_medium = 0.25
+
+        # Use np.select to create a new column based on conditions
+        df_m['D_Category'] = pd.cut(df_m['Delta'], bins=[-float('inf'), threshold_medium, threshold_high, float('inf')],
+                                    labels=['L', 'M', 'H'])
+        return df_m.copy()
 
     def grouping_1(self):
         s_c = self.idv_score.copy()

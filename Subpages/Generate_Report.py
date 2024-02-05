@@ -5,6 +5,7 @@ import pandas as pd
 import plotly_express as px
 import streamlit as st
 
+from LocalApps.SharedLayout import by_class_summary
 from LocalApps.SharedObjects import callback_analysis, dis_index
 
 
@@ -164,6 +165,8 @@ def layout_part_2(df):
 
 def color_based_on_conditions(row):
     if row['P_Category'] == 'L' and row['D_Category'] == 'L':
+        return 'purple'
+    elif row['P_Category'] == 'L':
         return 'red'
     elif row['P_Category'] == 'L' or row['D_Category'] == 'L':
         return 'yellow'
@@ -181,129 +184,67 @@ def layout_main(a_dic, a_sel):
         # # st.dataframe(df)
         st.markdown(f"## {class_year}年級 {subj}科分析")
 
-        df_m = a_subject.correct_rate_all.merge(a_subject.distinguish_rate, on=['Question'], how='left')
+        fig = by_class_summary(a_subject.df, a_subject.idv_score)
+        st.plotly_chart(fig)
 
-        threshold_high = 0.8
-        threshold_medium = 0.6
+        st.markdown('### 各題答對率與鑑別率')
+        st.markdown(
+            f"""鑑別率(D)計算方法:每25%分成一個群組，D = 最高25%組的達對率 - 最低25%組的答對率。
+            ([參考Link](https://pedia.cloud.edu.tw/Entry/WikiContent?title=%E9%91%91%E5%88%A5%E5%BA%A6&search=%E9%91%91%E5%88%A5%E5%BA%A6) 
+            一般而言，鑑別度以0.25以上為標準，高於0.4為優良試題)""")
+        df_m = a_subject.build_question_matrix()
 
-        # Use np.select to create a new column based on conditions
-        df_m['P_Category'] = pd.cut(df_m['Percentage'],
-                                    bins=[-float('inf'), threshold_medium, threshold_high, float('inf')],
-                                    labels=['L', 'M', 'H'])
-
-        threshold_high = 0.4
-        threshold_medium = 0.25
-
-        # Use np.select to create a new column based on conditions
-        df_m['D_Category'] = pd.cut(df_m['Delta'], bins=[-float('inf'), threshold_medium, threshold_high, float('inf')],
-                                    labels=['L', 'M', 'H'])
         df_m['Color'] = df_m.apply(color_based_on_conditions, axis=1)
 
         st.dataframe(df_m)
 
+        df_low = df_m[df_m['Percentage'] < 0.5]
+        set1 = set(df_low['Question'].unique())
+        st.write(f"題目 {', '.join(df_low['Question'].unique())} 的答對率低於50%")
+        df_low2 = df_m[df_m['Delta'] < 0.25]
+        set2 = set(df_low2['Question'].unique())
+        st.write(f"題目 {', '.join(set2)} 的鑑別率低於25%")
+        set3 = set1.intersection(set2)
+        list1 = list(set3)
+        if len(list1) > 0:
+            list1.sort()
+            st.write(f"題目 {', '.join(list1)} 的答對率低於50%，且鑑別率低於25%")
+
         fig = px.scatter(df_m, x='Percentage', y='Delta', title='答對率-鑑別率 Scatter Plot', text='Question',
                          color='Color',
+                         color_discrete_map={
+                             "purple": 'purple',
+                             "red": "red",
+                             "yellow": "yellow",
+                             "green": "green"},
                          labels={'題目': 'Question', '答對率': 'X-axis', '鑑別率': 'Y-axis'})
         fig.update_traces(textposition='middle right')
         fig.update_xaxes(title_text='答對率')
         fig.update_yaxes(title_text='鑑別率')
         st.plotly_chart(fig)
-        #
-        # # include 體育班 or not
-        # unique_values = sorted(df['班級'].unique())
-        #
-        # # Step 2: Determine the last unique value
-        # last_unique_value = unique_values[-1]
-        #
-        # # Step 3: Create a new column 'label' with 'normal' for all rows initially
-        # df['label'] = 'normal'
-        #
-        # # Step 4: Set 'special' label for rows where the column value is the last unique value
-        # df.loc[df['班級'] == last_unique_value, 'label'] = 'special'
-        #
-        # if normal_only:
-        #     df = df[df['label'] == 'normal']
-        # else:
-        #     pass
-        #
-        # # Group by to get % correct by student
-        # s_df = df.groupby(['學號', 'Answer']).agg({'Question': 'count'})
-        # s_df['Percentage'] = s_df.groupby(['學號'])['Question'].transform(lambda x: x / x.sum())
-        # s_df = s_df.reset_index()
-        # s_df['percentage_text'] = s_df['Percentage'].apply(lambda x: f'{int(x * 100)}%')
-        # s_c = s_df[s_df['Answer'] == '.'].copy()
-        # s_c = s_c.sort_values(by='Percentage', ascending=True)
-        #
-        # # Divide students into 6 groups (R1 to R6)
-        # if g_m == '一般分法(5組)':
-        #     s_c, a_text, s_p, fig2, a_text2 = grouping_2(s_c)
-        # elif g_m == '一般分法(6組)':
-        #     s_c, a_text, s_p, fig2, a_text2 = grouping_3(s_c)
-        # else:
-        #     s_c, a_text, s_p, fig2, a_text2 = grouping_1(s_c)
-        #
-        # # st.dataframe(s_p)
-        # st.divider()
-        # st.markdown(a_text)
-        # col1, col2 = st.columns(2)
-        # fig = px.bar(s_p, x=s_p.index, y='Percentage', color='Rank')
-        # fig.update_xaxes(showticklabels=False)
-        # col1.markdown('Ranking 排列')
-        # col1.plotly_chart(fig)
-        #
-        # s_minmax = s_p.groupby('Rank')['Percentage'].agg(['min', 'max'])
-        # s_minmax = s_minmax.reset_index()
-        # st.markdown('各組答對率 [min max] 值')
-        # st.dataframe(s_minmax)
-        #
-        # col2.markdown(a_text2)
-        # col2.plotly_chart(fig2)
-        #
-        # # join the original data
-        # b_len = len(df)
-        # df = df.merge(s_c, on=['學號'], how='left')
-        # a_len = len(df)
-        #
-        # # to make sure total rows does not increase after merge
-        # if a_len != b_len:
-        #     st.error('Please check ranking calculation! Unique student id as output')
-        #     st.stop()
-        # # st.dataframe(df)
-        # st.divider()
-        # layout_by_class(df, s_c)
-        #
-        # st.divider()
-        # df_sorted = layout_part_2(df)
-        # # Group by to get % correct by question and by the whole class year
-        #
-        # st.divider()
-        # layout_part_3(df, df_sorted)
-        # st.success("完成!")
 
+        df_sorted = df_m.sort_values(by='Percentage')
 
-def layout_by_class(df, s_c):
-    st.markdown('### 各班成績分布與排名')
-    col1, col2 = st.columns(2)
-    # st.dataframe(df)
-    df_box = df.groupby(['班級', '學號'], as_index=False).agg({'Question': 'count'})
-    df_box = df_box.merge(s_c, on=['學號'], how='left')
-    df_desc = df_box.groupby(['班級'])['Percentage'].describe()
-    col1.dataframe(df_desc)
-    # Find the top category by mean and median (50%)
-    top_categories_mean = df_desc['mean'].nlargest(3).index
-    top_categories_median = df_desc['50%'].nlargest(3).index
-    # Generate the text summary for mean
-    text_summary_mean = f"平均前三名的班級: {', '.join(top_categories_mean)} 各自平均為 {', '.join([f'{mean:.2f}' for mean in df_desc.loc[top_categories_mean, 'mean']])}"
-    # Generate the text summary for median (50%)
-    text_summary_median = f"中位數前三名的班級: {', '.join(top_categories_median)} 各自中位數為 {', '.join([f'{median:.2f}' for median in df_desc.loc[top_categories_median, '50%']])}"
-    # Print the text summaries
-    col2.write("\n歸納總結:\n")
-    col2.write(text_summary_mean)
-    col2.write(text_summary_median)
-    fig = px.box(df_box, x='班級', y='Percentage', points='all', color='班級', width=900)
-    st.markdown('### 箱型圖')
-    fig.update_traces(boxmean=True)
-    st.plotly_chart(fig)
+        fig = px.bar(df_sorted, x='Question', y='Percentage', text='percentage_text', color='Delta',
+                     color_continuous_scale=["red", "green"], range_color=[0, 0.8])
+        st.markdown("""### 各題 依答對率排序""")
+
+        st.write("""
+        Bar越短，答對率越低
+        
+        顏色越紅，鑑別率越低
+        """)
+
+        st.plotly_chart(fig)
+        df_low = df_low.sort_values(by='Percentage', ascending=True)
+        df_q = a_subject.q_by_answer.copy()
+        st.markdown('### 單一問題分析 (答對率低於50%)')
+        for index, row in df_low.iterrows():
+            st.write(f'本題{row.Question}的答對率為{round(row.Percentage, 3)}，鑑別率為{round(row.Delta, 3)}')
+            # st.write(row)
+            df_s = df_q[df_q['Question'] == row.Question]
+            df_s = df_s.rename(columns={'學號': '人數'})
+            st.write(df_s)
 
 
 def main():

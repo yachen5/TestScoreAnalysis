@@ -34,6 +34,7 @@ def layout_main():
             a_col.subheader(f"{a_subject} 本班與其他班的箱型圖比較")
             a_col.markdown('可參考 中位數與高低分差')
             fig = px.box(df, x='Groups', y='Percentage', facet_col='Groups', color='Groups')
+            fig.update_traces(boxmean=True)
             a_col.plotly_chart(fig)
             df_desc = df.groupby(['Groups'])['Percentage'].describe()
             a_col.markdown('統計表')

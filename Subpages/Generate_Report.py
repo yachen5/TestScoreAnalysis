@@ -5,18 +5,8 @@ import pandas as pd
 import plotly_express as px
 import streamlit as st
 
-from LocalApps.SharedLayout import by_class_summary
+from LocalApps.SharedLayout import by_class_summary, layout_class
 from LocalApps.SharedObjects import callback_analysis, dis_index
-
-
-# st.set_page_config(layout="wide")
-
-
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-
-# Specify the path to your .pkl file
-# pkl_file_path = r'../summary.pkl'
 
 
 def grouping_1(s_c):
@@ -45,36 +35,29 @@ def grouping_1(s_c):
 
 
 def grouping_2(s_c):
-    bins = [0, 0.6, 0.7, 0.8, 0.9, 1.1]
-    s_c['Rank'] = pd.cut(s_c['Percentage'], bins=bins,
-                         labels=['<60', '60-69', '70-79', '80-89', '>90'], right=False)
-    r_text = """### 分群曲線
-    - 先把全年級學生當科答對率(1=100%)，從最低排到最高
-    - 每根bar代表一位學生，移除學號
-    - 分成5群: 每10分為一群"""
+    bins_2 = [0, 0.6, 0.7, 0.8, 0.9, 1.1]
+    labels_2 = ['<60', '60-69', '70-79', '80-89', '>90']
 
-    s_c = s_c.drop(['Answer', 'Question'], axis=1)
-    s_p = s_c.copy()
-    s_p = s_p.reset_index(drop=True)
-    s_count = s_p.groupby('Rank').agg({'學號': 'count'})
-    s_count = s_count.reset_index()
-    r_text2 = "各組人數"
-    fig = px.bar(s_count, x='Rank', y='學號', text='學號', color='Rank')
-    # fig.update_traces(textposition='top center')
-    # Set y-axis to start from zero
-    # fig.update_layout(yaxis=dict(range=[0, max(s_count['學號'] + 10)]))
+    s_c, r_text, s_p, fig, r_text2 = ten_group_students(s_c, bins_2, labels_2)
 
     return s_c.copy(), r_text, s_p, fig, r_text2
 
 
 def grouping_3(s_c):
-    bins = [0, 0.3, 0.6, 0.7, 0.8, 0.9, 1.1]
-    s_c['Rank'] = pd.cut(s_c['Percentage'], bins=bins,
-                         labels=['<30', '30-59', '60-69', '70-79', '80-89', '>90'], right=False)
-    r_text = """### 全年級分群曲線
+    bins_3 = [0, 0.3, 0.6, 0.7, 0.8, 0.9, 1.1]
+    labels_3 = ['<30', '30-59', '60-69', '70-79', '80-89', '>90']
+
+    s_c, r_text, s_p, fig, r_text2 = ten_group_students(s_c, bins_3, labels_3)
+
+    return s_c.copy(), r_text, s_p, fig, r_text2
+
+
+def ten_group_students(s_c, bins, labels, description='Ranking'):
+    s_c['Rank'] = pd.cut(s_c['Percentage'], bins=bins, labels=labels, right=False)
+    r_text = f"""### {description}
     - 先把全年級學生當科答對率(1=100%)，從最低排到最高
     - 每根bar代表一位學生，移除學號
-    - 分成6群: 每10分為一群"""
+    - 分成 {len(labels)} 群: 每10分為一群"""
 
     s_c = s_c.drop(['Answer', 'Question'], axis=1)
     s_p = s_c.copy()
@@ -238,13 +221,19 @@ def layout_main(a_dic, a_sel):
         st.plotly_chart(fig)
         df_low = df_low.sort_values(by='Percentage', ascending=True)
         df_q = a_subject.q_by_answer.copy()
-        st.markdown('### 單一問題分析 (答對率低於50%)')
+        st.markdown('## 單一問題分析 (針對答對率低於50%的題目)')
         for index, row in df_low.iterrows():
-            st.write(f'本題{row.Question}的答對率為{round(row.Percentage, 3)}，鑑別率為{round(row.Delta, 3)}')
+            st.write(f'### 本題{row.Question}的答對率為{round(row.Percentage, 3)}，鑑別率為{round(row.Delta, 3)}')
             # st.write(row)
             df_s = df_q[df_q['Question'] == row.Question]
             df_s = df_s.rename(columns={'學號': '人數'})
-            st.write(df_s)
+            df_s['Percentage'] = round(df_s['Percentage'], 3)
+            # st.write(df_s)
+            st.markdown("**全年級答案分布圖**")
+            st.markdown("\t .\t-----> 回答正確")
+            st.markdown("\t =\t-----> 空白未作答")
+            fig = px.bar(df_s, x='Answer', y='人數', color='Percentage', text='Percentage')
+            st.plotly_chart(fig)
 
 
 def main():
@@ -266,7 +255,7 @@ def main():
 
 
 def tbd():
-    st.write("持續開發中，敬請期待!")
+    layout_class(include_all=True)
 
 
 # Press the green button in the gutter to run the script.

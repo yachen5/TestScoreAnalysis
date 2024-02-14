@@ -1,3 +1,6 @@
+import io
+
+import pandas as pd
 import plotly_express as px
 import streamlit as st
 
@@ -26,3 +29,108 @@ def by_class_summary(df, s_c):
     fig.update_traces(boxmean=True)
     return fig
     # st.plotly_chart(fig)
+
+
+def layout_class(include_all=False):
+    a_dic = st.session_state.class_groups
+    # col1, col2 = st.columns(2)
+    selections = list(a_dic.keys())
+    selections.sort()
+    selections.insert(0, "請選擇")
+    a_selection = st.selectbox("請選擇一個班級", selections)
+    # st.write(a_selection)
+    if (a_selection != "請選擇"):
+        subjects = st.session_state['subjects']
+        a_class = a_dic[a_selection]
+        # st.write(a_class.class_numbers)
+        # st.dataframe(a_class.students)
+        li_ek = []
+        if include_all:
+            subject_list = a_class.subjects
+        else:
+            subject_list = st.multiselect("請選擇科目 (可複選)", a_class.subjects)
+        # col_list = [col1, col2]
+        count = 0
+        for a_subject in subject_list:
+            subject_class = subjects[a_subject]
+            df = subject_class.idv_score.copy()
+            df['Percentage'] = round(df['Percentage'] * 100, )
+            df['Groups'] = df['學號'].apply(lambda x: a_selection if x in a_class.class_numbers else '其他班')
+            df = df.sort_values(by=['Groups'])
+            # st.dataframe(df)
+            st.subheader(f"{a_subject} 本班與其他班的箱型圖比較")
+            st.markdown('可參考 中位數與高低分差')
+            fig = px.box(df, x='Groups', y='Percentage', facet_col='Groups', color='Groups')
+            fig.update_traces(boxmean=True)
+            st.plotly_chart(fig)
+            df_desc = df.groupby(['Groups'])['Percentage'].describe()
+            st.markdown('統計表')
+            st.table(df_desc)
+
+            q_correct = subject_class.correct_rate(a_class.class_numbers, True)
+            q_correct['Group'] = '其他班'
+            q_correct2 = subject_class.correct_rate(a_class.class_numbers, False)
+            q_correct2['Group'] = a_selection
+
+            df_merge = q_correct.merge(q_correct2, on=['Question'], how='left')
+            # st.dataframe(df_merge)
+            st.write("""
+            柱狀圖示本班各題的答對率
+            
+            Delta是本班答對率 減掉 其他班答對率  >0:本班較佳 <0:其他班較佳
+            
+            顏色越紅，該題建議重點複習!
+            """)
+            df_merge['Delta'] = df_merge['Percentage_y'] - df_merge['Percentage_x']
+            df_merge = df_merge[['Question', 'Delta']]
+            q_correct2 = q_correct2.merge(df_merge, on='Question', how='left')
+            # st.dataframe(df_merge)
+            # q_c_all = pd.concat([q_correct, q_correct2], ignore_index=True)
+            fig = px.bar(q_correct2, x='Question', y='Percentage', text='percentage_text', color='Delta',
+                         color_continuous_scale=[(0, "red"), (0.5, "lightgray"), (1, "green")],
+                         color_continuous_midpoint=0)
+
+            # fig.add_trace(px.line(df_merge, x='Question', y='Delta', color_discrete_sequence=['red']).data[0])
+            st.plotly_chart(fig)
+            df_ek = subject_class.error_rank.copy()
+            li_ek.append(df_ek)
+            count += 1
+            st.divider()
+
+        if len(subject_list) > 0:
+            st.markdown("""
+            分析各學生回答錯誤的題目，對應到全年級的答對率
+            
+            全年級答對率越高，該學生的該題要加強複習
+            
+            答對率低於基準線以下的題目不列入分析""")
+            # col1, col2 = st.columns(2)
+            selected_min = st.number_input('請選擇全年級答對率的基準線', min_value=0.5, max_value=1.0, value=0.7,
+                                           step=0.1)
+
+            df_ek_all = pd.concat(li_ek, ignore_index=True)
+            df_ek_all = df_ek_all.dropna(subset=['Percentage'])
+            df_ek_sub = df_ek_all[df_ek_all['Percentage'] >= selected_min]
+            df_ek_sub = df_ek_sub.sort_values(by=['學號', '科目代號', 'Percentage'], ascending=[True, True, False])
+            if include_all:
+                pass
+            else:
+                pick_student = st.selectbox("請選擇一個學號", a_class.class_numbers)
+                df_ek_sub = df_ek_sub[df_ek_sub['學號'] == pick_student]
+
+            df_ek_sub = df_ek_sub[
+                ['班級', '座號', '學號', '科目代號', 'Question', 'Answer', 'Percentage', 'percentage_text']]
+            # df_ek_all = df_ek_all.sort_values(by=['學號'])
+            st.dataframe(df_ek_sub)
+            excel_file = io.BytesIO()
+            df_ek_sub.to_excel(excel_file, index=False)  # Adjust parameters as needed
+
+            # Create a download button with appropriate label and mimetype
+            download_link = st.download_button(
+                label="下載上列的Excel報表",
+                data=excel_file.getvalue(),
+                file_name="data.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            )
+
+        # st.dataframe(q_correct)

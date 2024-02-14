@@ -6,6 +6,7 @@ import plotly_express as px
 import streamlit as st
 
 from LocalApps.SharedObjects import callback_analysis
+from Subpages import Generate_Report
 
 
 # st.set_page_config(layout="wide")
@@ -36,77 +37,6 @@ def dis_index(df):
     # st.dataframe(df_p)
     # st.markdown([ph, pl])
     return ph, pl
-
-
-def grouping_1(s_c):
-    group_size = len(s_c) // 6
-    s_c['Rank'] = pd.cut(np.arange(len(s_c)),
-                         bins=[-1, group_size, 2 * group_size, 3 * group_size, 4 * group_size, 5 * group_size,
-                               len(s_c)],
-                         labels=['R1', 'R2', 'R3', 'R4', 'R5', 'R6'], include_lowest=True)
-    r_text = """### R1~R6 分群曲線
-    - 先把全年級學生當科答對率(1=100%)，從最低排到最高
-    - 每根bar代表一位學生，移除學號
-    - 分成六等分: R1是最高分的一組，到R6是最低分的一組"""
-
-    s_c = s_c.drop(['Answer', 'Question'], axis=1)
-    s_p = s_c.copy()
-    s_p = s_p.reset_index(drop=True)
-    s_avg = s_p.groupby('Rank').agg({'Percentage': 'mean'})
-    s_avg = s_avg.reset_index()
-    s_avg['percentage_text'] = s_avg['Percentage'].apply(lambda x: f'{int(x * 100)}%')
-    fig = px.line(s_avg, x='Rank', y='Percentage', text='percentage_text')
-    fig.update_traces(textposition='top center')
-    # Set y-axis to start from zero
-    fig.update_layout(yaxis=dict(range=[0, max(s_avg['Percentage'] + 0.2)]))
-    r_text2 = "各組平均答對率 斜率圖(各組變化太大須注意)"
-    return s_c.copy(), r_text, s_p, fig, r_text2
-
-
-def grouping_2(s_c):
-    bins = [0, 0.6, 0.7, 0.8, 0.9, 1.1]
-    s_c['Rank'] = pd.cut(s_c['Percentage'], bins=bins,
-                         labels=['<60', '60-69', '70-79', '80-89', '>90'], right=False)
-    r_text = """### 分群曲線
-    - 先把全年級學生當科答對率(1=100%)，從最低排到最高
-    - 每根bar代表一位學生，移除學號
-    - 分成5群: 每10分為一群"""
-
-    s_c = s_c.drop(['Answer', 'Question'], axis=1)
-    s_p = s_c.copy()
-    s_p = s_p.reset_index(drop=True)
-    s_count = s_p.groupby('Rank').agg({'學號': 'count'})
-    s_count = s_count.reset_index()
-    r_text2 = "各組人數"
-    fig = px.bar(s_count, x='Rank', y='學號', text='學號', color='Rank')
-    # fig.update_traces(textposition='top center')
-    # Set y-axis to start from zero
-    # fig.update_layout(yaxis=dict(range=[0, max(s_count['學號'] + 10)]))
-
-    return s_c.copy(), r_text, s_p, fig, r_text2
-
-
-def grouping_3(s_c):
-    bins = [0, 0.3, 0.6, 0.7, 0.8, 0.9, 1.1]
-    s_c['Rank'] = pd.cut(s_c['Percentage'], bins=bins,
-                         labels=['<30', '30-59', '60-69', '70-79', '80-89', '>90'], right=False)
-    r_text = """### 全年級分群曲線
-    - 先把全年級學生當科答對率(1=100%)，從最低排到最高
-    - 每根bar代表一位學生，移除學號
-    - 分成6群: 每10分為一群"""
-
-    s_c = s_c.drop(['Answer', 'Question'], axis=1)
-    s_p = s_c.copy()
-    s_p = s_p.reset_index(drop=True)
-    s_count = s_p.groupby('Rank').agg({'學號': 'count'})
-    s_count = s_count.reset_index()
-    r_text2 = "各組人數"
-    fig = px.bar(s_count, x='Rank', y='學號', text='學號', color='Rank')
-    # fig.update_traces(textposition='top center')
-    # Set y-axis to start from zero
-    # fig.update_layout(yaxis=dict(range=[0, max(s_count['學號'] + 10)]))
-
-    return s_c.copy(), r_text, s_p, fig, r_text2
 
 
 def layout_part_3(df, df_sorted):
@@ -218,11 +148,11 @@ def layout_main(a_dic, a_sel, g_m, normal_only):
 
         # Divide students into 6 groups (R1 to R6)
         if g_m == '一般分法(5組)':
-            s_c, a_text, s_p, fig2, a_text2 = grouping_2(s_c)
+            s_c, a_text, s_p, fig2, a_text2 = Generate_Report.grouping_2(s_c)
         elif g_m == '一般分法(6組)':
-            s_c, a_text, s_p, fig2, a_text2 = grouping_3(s_c)
+            s_c, a_text, s_p, fig2, a_text2 = Generate_Report.grouping_3(s_c)
         else:
-            s_c, a_text, s_p, fig2, a_text2 = grouping_1(s_c)
+            s_c, a_text, s_p, fig2, a_text2 = Generate_Report.grouping_1(s_c)
 
         # st.dataframe(s_p)
         st.divider()

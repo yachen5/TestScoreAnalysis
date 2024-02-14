@@ -33,12 +33,12 @@ with st.sidebar.container():
     new_tag = sac.Tag('New', color='green')
     menu = sac.menu([
         sac.MenuItem('Home', icon='house-fill', tag=[re_tag]),
-        sac.MenuItem('上傳Excel檔案', icon='filetype-xlsx'),
-        sac.MenuItem('分析工具', icon='clipboard-data', children=[
+        sac.MenuItem('上傳Excel檔案', description='為了保護個資，網頁關閉後資料即移除', icon='filetype-xlsx'),
+        sac.MenuItem('分析工具', icon='clipboard-data', description='網頁可互動式選取', children=[
             sac.MenuItem('科任老師報表與分析', icon='bar-chart-line', description=''),
             sac.MenuItem('導師報表與分析', icon='diagram-3', description=''),
         ]),
-        sac.MenuItem('輸出檔案', icon='filetype-pdf', children=[
+        sac.MenuItem('輸出檔案', icon='filetype-pdf', description='固定格式分析報表', children=[
             sac.MenuItem('分科報告', icon='bar-chart-line-fill', tag=[new_tag]),
             # sac.MenuItem('分班報告', icon='diagram-3-fill', description=''),
             sac.MenuItem('分班報告', icon='cone-striped', description='', tag=[new_tag]),

@@ -10,6 +10,7 @@ def top_error_questions(group):
 
 class Subject:
     def __init__(self, df):
+        self.large_df = None
         self.q_by_answer = None
         self.distinguish_rate = None
         self.error_rank = None
@@ -33,11 +34,10 @@ class Subject:
         s_c = s_df[s_df['Answer'] == '.']
         s_c = s_c.drop(columns=['Answer', 'Question'])
         ic(s_c)
+        # assign each student to a group
         s_c = assign_four_groups(s_c)
         ic(s_c)
         self.idv_score = s_c.copy()
-
-        s_c = s_c.sort_values(by='Percentage', ascending=True)
 
     def calculate_error_rank_by_student_all(self):
         # Each student answers certain questions incorrectly. Get the correction rate of the whole group and link to
@@ -81,6 +81,9 @@ class Subject:
         ic.disable()
         df = self.df.copy()
         df = df.merge(self.idv_score, on=['學號'], how='left')
+        # this is the largest
+        self.large_df = df.copy()
+
         df_g = df.groupby(['PG', 'Question', 'Answer']).agg({'學號': 'count'})
         df_g['Percentage'] = df_g.groupby(['PG', 'Question'])['學號'].transform(lambda x: x / x.sum())
         df_g = df_g.reset_index()
@@ -196,11 +199,7 @@ def assign_four_groups(df):
 
 
 def dis_index(df):
-    group_size = len(df) // 4
-    df = df.sort_values('Percentage', ascending=True)
-    df['PG'] = pd.cut(np.arange(len(df)),
-                      bins=[-1, group_size, 2 * group_size, 3 * group_size, len(df)],
-                      labels=['PL', 'PML', 'PMH', 'PH'], include_lowest=True)
+    df = assign_four_groups(df)
     # st.dataframe(df)
     df_g = df.groupby(['PG', 'Answer']).agg({'學號': 'count'})
     df_g['Percentage'] = df_g.groupby(['PG'])['學號'].transform(lambda x: x / x.sum())

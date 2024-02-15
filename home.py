@@ -3,7 +3,8 @@ import streamlit_antd_components as sac
 
 from Subpages import By_Class_Analysis, By_Subject_Analysis, Upload_Excel, Generate_Report
 
-st.set_page_config(layout="wide")
+
+# st.set_page_config(layout="wide")
 
 
 def overview():
@@ -24,7 +25,7 @@ def overview():
 
 謝謝您選擇這個的工具，我們期待為您提供卓越的數據分析體驗！
 
-版本 V1.0215_2024
+版本 V1.0216_2024
 """)
 
 
@@ -38,7 +39,7 @@ with st.sidebar.container():
             sac.MenuItem('科任老師報表與分析', icon='bar-chart-line', description=''),
             sac.MenuItem('導師報表與分析', icon='diagram-3', description=''),
         ]),
-        sac.MenuItem('輸出檔案', icon='filetype-pdf', description='固定格式分析報表', children=[
+        sac.MenuItem('輸出檔案', icon='filetype-pdf', description='固定格式分析報表一鍵輸出', children=[
             sac.MenuItem('分科報告', icon='bar-chart-line-fill', tag=[new_tag]),
             # sac.MenuItem('分班報告', icon='diagram-3-fill', description=''),
             sac.MenuItem('分班報告', icon='cone-striped', description='', tag=[new_tag]),
@@ -57,7 +58,7 @@ elif menu == '導師報表與分析':
 elif menu == '分科報告':
     Generate_Report.main()
 elif menu == '分班報告':
-    Generate_Report.tbd()
+    Generate_Report.by_class_report()
     # show_pages(
     #     [
     #         Page("home.py", "Home", ":school:"),

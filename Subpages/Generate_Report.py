@@ -220,25 +220,33 @@ def layout_main(a_dic, a_sel):
 
         st.plotly_chart(fig)
         df_low = df_low.sort_values(by='Percentage', ascending=True)
-        df_q = a_subject.q_by_answer.copy()
+        # df_q = a_subject.q_by_answer.copy()
+        large_df = a_subject.large_df.copy()
+        # st.dataframe(large_df)
+        df_g = large_df.groupby(by=['Question', 'PG', 'Answer']).agg({'學號': 'count'})
+        df_g = df_g.reset_index()
         st.markdown('## 單一問題分析 (針對答對率低於50%的題目)')
+
         for index, row in df_low.iterrows():
             st.write(f'### 本題{row.Question}的答對率為{round(row.Percentage, 3)}，鑑別率為{round(row.Delta, 3)}')
             # st.write(row)
-            df_s = df_q[df_q['Question'] == row.Question]
+            df_s = df_g[df_g['Question'] == row.Question]
             df_s = df_s.rename(columns={'學號': '人數'})
-            df_s['Percentage'] = round(df_s['Percentage'], 3)
+            # st.dataframe(df_s)
             # st.write(df_s)
-            st.markdown("**全年級答案分布圖**")
-            st.markdown("\t .\t-----> 回答正確")
-            st.markdown("\t =\t-----> 空白未作答")
-            fig = px.bar(df_s, x='Answer', y='人數', color='Percentage', text='Percentage')
+            st.markdown("**全年級各分群答案分布圖**")
+            st.markdown("""
+            **.**-----> 回答正確, **=**-----> 空白未作答
+            """)
+            st.markdown("PL:低分群 (0%~25%),PML:中低分群(25%~50%),PMH:中高分群(50%~75%),PH:高分群(75%~100%)")
+            fig = px.bar(df_s, x='PG', y='人數', color='Answer', text='人數')
             st.plotly_chart(fig)
 
 
 def main():
     if 'subjects' in st.session_state:
-        st.write("持續開發中，敬請期待!")
+        st.write(
+            "主要是提供給科任老師來看學生回答的狀況，從班與班或各個題目的回答狀況來加強某些觀念，也可以進一步研究學生答錯背後的原因")
         a_dic = st.session_state.subjects
         selections = list(a_dic.keys())
         selections.sort()
@@ -254,8 +262,13 @@ def main():
         st.warning("請回到前一步驟，上傳Excel文件")
 
 
-def tbd():
-    layout_class(include_all=True)
+def by_class_report():
+    if 'subjects' in st.session_state:
+        st.markdown("主要是提供給導師，在挑選自己的班級後將各科成績分析與班上答題狀況一次呈現。"
+                    "另外在本頁最底下有詳列班上學生**不應該答錯的題目**，這部份可以下載Excel File來拆分使用")
+        layout_class(include_all=True)
+    else:
+        st.warning("請回到前一步驟，上傳Excel文件")
 
 
 # Press the green button in the gutter to run the script.

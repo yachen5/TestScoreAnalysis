@@ -65,7 +65,7 @@ def layout_class(include_all=False):
             st.plotly_chart(fig)
             df_desc = df.groupby(['Groups'])['Percentage'].describe()
             st.markdown('統計表')
-            st.table(df_desc)
+            st.dataframe(df_desc)
 
             q_correct = subject_class.correct_rate(a_class.class_numbers, True)
             q_correct['Group'] = '其他班'

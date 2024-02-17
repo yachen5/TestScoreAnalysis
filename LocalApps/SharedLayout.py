@@ -12,7 +12,9 @@ def by_class_summary(df, s_c):
     df_box = df.groupby(['班級', '學號'], as_index=False).agg({'Question': 'count'})
     df_box = df_box.merge(s_c, on=['學號'], how='left')
     df_desc = df_box.groupby(['班級'])['Percentage'].describe()
-    col1.dataframe(df_desc)
+    df_desc2 = convert_stats(df_desc)
+
+    col1.dataframe(df_desc2)
     # Find the top category by mean and median (50%)
     top_categories_mean = df_desc['mean'].nlargest(3).index
     top_categories_median = df_desc['50%'].nlargest(3).index
@@ -29,6 +31,18 @@ def by_class_summary(df, s_c):
     fig.update_traces(boxmean=True)
     return fig
     # st.plotly_chart(fig)
+
+
+def convert_stats(df_desc):
+    df_desc2 = df_desc.rename(
+        columns={'count': '人數', 'mean': '平均', 'std': '標準差', 'min': '最低分', '25%': '25%', '50%': '中位數',
+                 '75%': '75%', 'max': '最高分'})
+    # convert dicimals to percentage for better readability
+    cols_to_convert = ['平均', '標準差', '最低分', '25%', '中位數', '75%', '最高分']
+    # Convert columns to percentage
+    for col in cols_to_convert:
+        df_desc2[col] = round(df_desc2[col] * 100, 2)
+    return df_desc2
 
 
 def layout_class(include_all=False):
@@ -54,7 +68,7 @@ def layout_class(include_all=False):
         for a_subject in subject_list:
             subject_class = subjects[a_subject]
             df = subject_class.idv_score.copy()
-            df['Percentage'] = round(df['Percentage'] * 100, )
+            # df['Percentage'] = round(df['Percentage'] * 100, )
             df['Groups'] = df['學號'].apply(lambda x: a_selection if x in a_class.class_numbers else '其他班')
             df = df.sort_values(by=['Groups'])
             # st.dataframe(df)
@@ -64,6 +78,7 @@ def layout_class(include_all=False):
             fig.update_traces(boxmean=True)
             st.plotly_chart(fig)
             df_desc = df.groupby(['Groups'])['Percentage'].describe()
+            df_desc = convert_stats(df_desc)
             st.markdown('統計表')
             st.dataframe(df_desc)
 
@@ -93,6 +108,10 @@ def layout_class(include_all=False):
             # fig.add_trace(px.line(df_merge, x='Question', y='Delta', color_discrete_sequence=['red']).data[0])
             st.plotly_chart(fig)
             df_ek = subject_class.error_rank.copy()
+            df_ek = df_ek[df_ek['學號'].isin(a_class.class_numbers)]
+            df_small = df[['學號', 'PG']].copy()
+            df_ek = df_ek.merge(df_small, on=['學號'], how='left')
+            # st.dataframe(df_ek)
             li_ek.append(df_ek)
             count += 1
             st.divider()
@@ -112,6 +131,7 @@ def layout_class(include_all=False):
             df_ek_all = df_ek_all.dropna(subset=['Percentage'])
             df_ek_sub = df_ek_all[df_ek_all['Percentage'] >= selected_min]
             df_ek_sub = df_ek_sub.sort_values(by=['學號', '科目代號', 'Percentage'], ascending=[True, True, False])
+            # df_ek_sub = df_ek_sub[df_ek_sub['學號'].isin(a_class.class_numbers)]
             if include_all:
                 pass
             else:
@@ -119,7 +139,7 @@ def layout_class(include_all=False):
                 df_ek_sub = df_ek_sub[df_ek_sub['學號'] == pick_student]
 
             df_ek_sub = df_ek_sub[
-                ['班級', '座號', '學號', '科目代號', 'Question', 'Answer', 'Percentage', 'percentage_text']]
+                ['班級', '座號', '學號', '科目代號', 'Question', 'Answer', 'Percentage', 'percentage_text', 'PG']]
             # df_ek_all = df_ek_all.sort_values(by=['學號'])
             st.dataframe(df_ek_sub)
             excel_file = io.BytesIO()

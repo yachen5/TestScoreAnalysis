@@ -10,6 +10,14 @@ from LocalApps.SharedObjects import callback_analysis, dis_index
 
 
 def grouping_1(s_c):
+    """_summary_
+
+    Args:
+        s_c (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """    
     group_size = len(s_c) // 6
     s_c['Rank'] = pd.cut(np.arange(len(s_c)),
                          bins=[-1, group_size, 2 * group_size, 3 * group_size, 4 * group_size, 5 * group_size,
@@ -53,6 +61,15 @@ def grouping_3(s_c):
 
 
 def ten_group_students(s_c, bins, labels, description='Ranking'):
+    """
+    This function is to group students into 10 groups based on their percentage of the correct answer
+    :param s_c: is the dataframe of the students' scores
+    :param bins: is the list of the bins
+    :param labels: is the list of the labels
+    :param description: is the description of the ranking
+    :return: a list of items that includes the dataframe of the students' scores, the description of the ranking and the
+    figure of the ranking of the students
+    """
     s_c['Rank'] = pd.cut(s_c['Percentage'], bins=bins, labels=labels, right=False)
     r_text = f"""### {description}
     - 先把全年級學生當科答對率(1=100%)，從最低排到最高
@@ -74,6 +91,12 @@ def ten_group_students(s_c, bins, labels, description='Ranking'):
 
 
 def layout_part_3(df, df_sorted):
+    """
+
+    :param df:
+    :param df_sorted: is a dataframe sorted by the percentage of the correct answer
+    :return:
+    """
     st.markdown("## 單一問題分析")
 
     # Add form components
@@ -178,7 +201,7 @@ def layout_main(a_dic, a_sel):
         df_m = a_subject.build_question_matrix()
 
         df_m['Color'] = df_m.apply(color_based_on_conditions, axis=1)
-
+        df_m = df_m.reset_index(drop=True)
         st.dataframe(df_m)
 
         df_low = df_m[df_m['Percentage'] < 0.5]

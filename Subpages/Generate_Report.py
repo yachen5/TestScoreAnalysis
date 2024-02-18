@@ -6,7 +6,7 @@ import plotly_express as px
 import streamlit as st
 
 from LocalApps.SharedLayout import by_class_summary, layout_class
-from LocalApps.SharedObjects import callback_analysis, dis_index
+from LocalApps.SharedObjects import callback_analysis, dis_index, calculate_percentage
 
 
 def grouping_1(s_c):
@@ -17,7 +17,7 @@ def grouping_1(s_c):
 
     Returns:
         _type_: _description_
-    """    
+    """
     group_size = len(s_c) // 6
     s_c['Rank'] = pd.cut(np.arange(len(s_c)),
                          bins=[-1, group_size, 2 * group_size, 3 * group_size, 4 * group_size, 5 * group_size,
@@ -144,10 +144,10 @@ def layout_part_3(df, df_sorted):
 
 
 def layout_part_2(df):
-    grouped_df = df.groupby(['年級', 'Question', 'Answer']).agg({'學號': 'count'})
-    grouped_df['Percentage'] = grouped_df.groupby(['年級', 'Question'])['學號'].transform(lambda x: x / x.sum())
-    grouped_df = grouped_df.reset_index()
-    grouped_df['percentage_text'] = grouped_df['Percentage'].apply(lambda x: f'{int(x * 100)}%')
+    # grouped_df = df.groupby(['年級', 'Question', 'Answer']).agg({'學號': 'count'})
+    # grouped_df['Percentage'] = grouped_df.groupby(['年級', 'Question'])['學號'].transform(lambda x: x / x.sum())
+    # grouped_df = grouped_df.reset_index()
+    grouped_df = calculate_percentage(df, ['年級', 'Question'], 'Answer', '學號')
     df_1 = grouped_df.copy()
     # df_1 = df_1.sort_values(by='Answer')
     category_order = list(df_1['Question'].unique()).sort()

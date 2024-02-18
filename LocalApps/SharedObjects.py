@@ -160,19 +160,22 @@ def callback_analysis(df, a_q, a_c, col):
     df_q = df[(df['Question'] == a_q) & (df['班級'].isin(a_c))]
 
     # st.dataframe(df_q)
-    grouped_df = df_q.groupby(['Rank', 'Answer']).agg({'學號': 'count'})
-    grouped_df['Percentage'] = grouped_df.groupby(['Rank'])['學號'].transform(lambda x: x / x.sum())
-    grouped_df = grouped_df.reset_index()
-    grouped_df['Percentage'] = grouped_df['Percentage'].fillna(0)
-    grouped_df['percentage_text'] = grouped_df['Percentage'].apply(lambda x: f'{int(x * 100)}%')
+    grouped_df = calculate_percentage(df_q, ['Rank'], 'Answer', '學號')
+    # grouped_df = df_q.groupby(['Rank', 'Answer']).agg({'學號': 'count'})
+    # grouped_df['Percentage'] = grouped_df.groupby(['Rank'])['學號'].transform(lambda x: x / x.sum())
+    # grouped_df = grouped_df.reset_index()
+    # grouped_df['Percentage'] = grouped_df['Percentage'].fillna(0)
+    # grouped_df['percentage_text'] = grouped_df['Percentage'].apply(lambda x: f'{int(x * 100)}%')
     # Display the grouped DataFrame with counts
     # st.dataframe(grouped_df)
 
     df_p = df_q.copy()
-    df_pp = df_p.groupby('Answer').agg({'學號': 'count'})
-    df_pp['Percentage'] = df_pp['學號'].transform(lambda x: x / len(df_q))
-    df_pp = df_pp.reset_index()
-    df_pp['percentage_text'] = df_pp['Percentage'].apply(lambda x: f'{int(x * 100)}%')
+    # df_pp = df_p.groupby('Answer').agg({'學號': 'count'})
+    # df_pp['Percentage'] = df_pp['學號'].transform(lambda x: x / len(df_q))
+    # df_pp = df_pp.reset_index()
+    # df_pp['percentage_text'] = df_pp['Percentage'].apply(lambda x: f'{int(x * 100)}%')
+    df_pp = calculate_percentage(df_p, [], 'Answer', '學號')
+
     df_pp = df_pp.sort_values(by='Answer')
 
     # get correct
@@ -212,3 +215,16 @@ def dis_index(df):
     # st.dataframe(df_p)
     # st.markdown([ph, pl])
     return ph, pl
+
+
+def calculate_percentage(df, group_cols, by_col, count_col):
+    df = df.copy()
+    df = df.groupby(group_cols + [by_col]).agg({count_col: 'count'})
+    if len(group_cols) == 0:
+        df['Percentage'] = df[count_col].transform(lambda x: x / len(df))
+    else:
+        df['Percentage'] = df.groupby(group_cols)[count_col].transform(lambda x: x / x.sum())
+    df['Percentage'] = df['Percentage'].fillna(0)
+    df = df.reset_index()
+    df['percentage_text'] = df['Percentage'].apply(lambda x: f'{int(x * 100)}%')
+    return df

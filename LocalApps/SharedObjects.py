@@ -46,11 +46,12 @@ class Subject:
         """Calculate the scores of each student."""
         ic.disable()
         # score of each student (by id)
-        # Group by to get % correct by student
-        s_df = self.df.groupby(['學號', 'Answer']).agg({'Question': 'count'})
-        s_df['Percentage'] = s_df.groupby(['學號'])['Question'].transform(lambda x: x / x.sum())
-        s_df = s_df.reset_index()
-        s_df['percentage_text'] = s_df['Percentage'].apply(lambda x: f'{int(x * 100)}%')
+        # # Group by to get % correct by student
+        # s_df = self.df.groupby(['學號', 'Answer']).agg({'Question': 'count'})
+        # s_df['Percentage'] = s_df.groupby(['學號'])['Question'].transform(lambda x: x / x.sum())
+        # s_df = s_df.reset_index()
+        # s_df['percentage_text'] = s_df['Percentage'].apply(lambda x: f'{int(x * 100)}%')
+        s_df = calculate_percentage(self.df, ['學號'], 'Answer', 'Question')
         s_c = s_df[s_df['Answer'] == '.']
         s_c = s_c.drop(columns=['Answer', 'Question'])
         ic(s_c)
@@ -205,13 +206,25 @@ def dis_index(df):
     return ph, pl
 
 
-def calculate_percentage(df, group_cols, by_col, count_col):
+def calculate_percentage(df, group_cols, by_col, sum_col):
+    """Calculate the percentage of a column's sum within groups.
+
+    Args:
+        df (pandas.DataFrame): The input DataFrame.
+        group_cols (list): The columns to group by.
+        by_col (str): The column to calculate the percentage by.
+        sum_col (str): The column to sum within groups.
+
+    Returns:
+        pandas.DataFrame: The DataFrame with the calculated percentage column.
+
+    """
     df = df.copy()
-    df = df.groupby(group_cols + [by_col]).agg({count_col: 'count'})
+    df = df.groupby(group_cols + [by_col]).agg({sum_col: 'count'})
     if len(group_cols) == 0:
-        df['Percentage'] = df[count_col].transform(lambda x: x / len(df))
+        df['Percentage'] = df[sum_col].transform(lambda x: x / len(df))
     else:
-        df['Percentage'] = df.groupby(group_cols)[count_col].transform(lambda x: x / x.sum())
+        df['Percentage'] = df.groupby(group_cols)[sum_col].transform(lambda x: x / x.sum())
     df['Percentage'] = df['Percentage'].fillna(0)
     df = df.reset_index()
     df['percentage_text'] = df['Percentage'].apply(lambda x: f'{int(x * 100)}%')

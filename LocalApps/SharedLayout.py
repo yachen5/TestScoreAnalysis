@@ -6,6 +6,17 @@ import streamlit as st
 
 
 def by_class_summary(df, s_c):
+    """
+    Generate a summary of class performance and rankings.
+
+    Args:
+        df (DataFrame): The input DataFrame containing student performance data.
+        s_c (DataFrame): The input DataFrame containing student information.
+
+    Returns:
+        fig (Figure): The generated box plot figure.
+
+    """
     st.markdown('### 各班成績分布與排名')
     col1, col2 = st.columns(2)
     # st.dataframe(df)
@@ -34,6 +45,14 @@ def by_class_summary(df, s_c):
 
 
 def convert_stats(df_desc):
+    """Converts statistical summary dataframe to a more readable format.
+
+    Args:
+        df_desc (pandas.DataFrame): The statistical summary dataframe.
+
+    Returns:
+        pandas.DataFrame: The converted dataframe with renamed columns and converted values.
+    """
     df_desc2 = df_desc.rename(
         columns={'count': '人數', 'mean': '平均', 'std': '標準差', 'min': '最低分', '25%': '25%', '50%': '中位數',
                  '75%': '75%', 'max': '最高分'})

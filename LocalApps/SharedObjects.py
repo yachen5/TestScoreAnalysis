@@ -9,7 +9,26 @@ def top_error_questions(group):
 
 
 class Subject:
+    """A class representing a subject.
+
+    Attributes:
+        large_df (DataFrame): A DataFrame containing the merged data.
+        q_by_answer (DataFrame): A DataFrame containing the correct rate of each question by answer.
+        distinguish_rate (DataFrame): A DataFrame containing the distinguish rate of each question by group.
+        error_rank (DataFrame): A DataFrame containing the error rank of each question by student.
+        r_text (str): A string representing the description of the R1~R6 grouping.
+        idv_score (DataFrame): A DataFrame containing the individual scores of each student.
+        df (DataFrame): A DataFrame containing the input data.
+        question_count (int): The number of unique questions in the input data.
+        correct_rate_all (DataFrame): A DataFrame containing the correct rate of all questions.
+    """
+
     def __init__(self, df):
+        """Initialize the Subject class.
+
+        Args:
+            df (DataFrame): A DataFrame containing the input data.
+        """
         self.large_df = None
         self.q_by_answer = None
         self.distinguish_rate = None
@@ -24,6 +43,7 @@ class Subject:
         self.get_distinguish_rate()
 
     def student_scores(self):
+        """Calculate the scores of each student."""
         ic.disable()
         # score of each student (by id)
         # Group by to get % correct by student
@@ -40,6 +60,8 @@ class Subject:
         self.idv_score = s_c.copy()
 
     def calculate_error_rank_by_student_all(self):
+        """Calculate the error rank of each question by student."""
+
         # Each student answers certain questions incorrectly. Get the correction rate of the whole group and link to
         # the incorrectly answered questions.
         df = self.df[self.df['Answer'] != '.'].copy()
@@ -54,6 +76,7 @@ class Subject:
         self.error_rank = df_m.copy()
 
     def correct_rate(self, id_list, exclude=True):
+        """Calculate the correct rate of each question by a subset of students."""
         # given a set of id, calculate the correct rate of each question done by this subset of students
         # can pass an empty id_list and select exclude =True to get the whole school year
         df = self.df.copy()
@@ -75,6 +98,8 @@ class Subject:
         return df_a.copy()
 
     def get_distinguish_rate(self):
+        """Calculate the distinguish rate of each question by group."""
+
         # each student (idv_score) is assigned a group name H, MH, ML, L
         # get the correct rate of each question and each group
         # use the percentage(correct) of H group - L group to get distinguish rate by question
@@ -83,10 +108,12 @@ class Subject:
         df = df.merge(self.idv_score, on=['學號'], how='left')
         # this is the largest
         self.large_df = df.copy()
+        #
+        # df_g = df.groupby(['PG', 'Question', 'Answer']).agg({'學號': 'count'})
+        # df_g['Percentage'] = df_g.groupby(['PG', 'Question'])['學號'].transform(lambda x: x / x.sum())
+        # df_g = df_g.reset_index()
+        df_g = calculate_percentage(df, ['PG', 'Question'], 'Answer', '學號')
 
-        df_g = df.groupby(['PG', 'Question', 'Answer']).agg({'學號': 'count'})
-        df_g['Percentage'] = df_g.groupby(['PG', 'Question'])['學號'].transform(lambda x: x / x.sum())
-        df_g = df_g.reset_index()
         df_p = df_g[df_g['Answer'] == '.']
         df_p['Percentage'] = round(df_p['Percentage'], 3)
         df_pivot = pd.pivot_table(df_p, values='Percentage', index='Question', columns='PG')
@@ -115,35 +142,6 @@ class Subject:
                                     labels=['L', 'M', 'H'])
         return df_m.copy()
 
-    def grouping_1(self):
-        s_c = self.idv_score.copy()
-        group_size = len(s_c) // 6
-        s_c['Rank'] = pd.cut(np.arange(len(s_c)),
-                             bins=[-1, group_size, 2 * group_size, 3 * group_size, 4 * group_size, 5 * group_size,
-                                   len(s_c)],
-                             labels=['R1', 'R2', 'R3', 'R4', 'R5', 'R6'], include_lowest=True)
-        self.r_text = """### R1~R6 分群曲線
-        - 先把全年級學生當科答對率(1=100%)，從最低排到最高
-        - 每根bar代表一位學生，移除學號
-        - 分成六等分: R1是最高分的一組，到R6是最低分的一組"""
-
-        self.idv_score = s_c.copy()
-        #
-        #
-        #
-        # s_c = s_c.drop(['Answer', 'Question'], axis=1)
-        # s_p = s_c.copy()
-        # s_p = s_p.reset_index(drop=True)
-        # s_avg = s_p.groupby('Rank').agg({'Percentage': 'mean'})
-        # s_avg = s_avg.reset_index()
-        # s_avg['percentage_text'] = s_avg['Percentage'].apply(lambda x: f'{int(x * 100)}%')
-        # fig = px.line(s_avg, x='Rank', y='Percentage', text='percentage_text')
-        # fig.update_traces(textposition='top center')
-        # # Set y-axis to start from zero
-        # fig.update_layout(yaxis=dict(range=[0, max(s_avg['Percentage'] + 0.2)]))
-        # r_text2 = "各組平均答對率 斜率圖(各組變化太大須注意)"
-        # return s_c.copy(), r_text, s_p, fig, r_text2
-
 
 class Class:
     def __init__(self, df):
@@ -161,19 +159,9 @@ def callback_analysis(df, a_q, a_c, col):
 
     # st.dataframe(df_q)
     grouped_df = calculate_percentage(df_q, ['Rank'], 'Answer', '學號')
-    # grouped_df = df_q.groupby(['Rank', 'Answer']).agg({'學號': 'count'})
-    # grouped_df['Percentage'] = grouped_df.groupby(['Rank'])['學號'].transform(lambda x: x / x.sum())
-    # grouped_df = grouped_df.reset_index()
-    # grouped_df['Percentage'] = grouped_df['Percentage'].fillna(0)
-    # grouped_df['percentage_text'] = grouped_df['Percentage'].apply(lambda x: f'{int(x * 100)}%')
-    # Display the grouped DataFrame with counts
-    # st.dataframe(grouped_df)
 
     df_p = df_q.copy()
-    # df_pp = df_p.groupby('Answer').agg({'學號': 'count'})
-    # df_pp['Percentage'] = df_pp['學號'].transform(lambda x: x / len(df_q))
-    # df_pp = df_pp.reset_index()
-    # df_pp['percentage_text'] = df_pp['Percentage'].apply(lambda x: f'{int(x * 100)}%')
+
     df_pp = calculate_percentage(df_p, [], 'Answer', '學號')
 
     df_pp = df_pp.sort_values(by='Answer')

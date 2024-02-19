@@ -40,10 +40,10 @@ with st.sidebar.container():
             sac.MenuItem('導師報表與分析', icon='diagram-3', description=''),
         ]),
         sac.MenuItem('輸出檔案', icon='filetype-pdf', description='固定格式分析報表一鍵輸出', children=[
-            sac.MenuItem('分科報告', icon='bar-chart-line-fill', tag=[new_tag]),
+            sac.MenuItem('分科報告', icon='bar-chart-line-fill'),
             # sac.MenuItem('分班報告', icon='diagram-3-fill', description=''),
-            sac.MenuItem('分班報告', icon='cone-striped', description='', tag=[new_tag]),
-
+            sac.MenuItem('分班報告', icon='cone-striped', description=''),
+            sac.MenuItem('全年級報告', icon='cone-striped', description='', tag=[new_tag]),
         ]),
     ], open_all=True, color='blue')
 
@@ -59,6 +59,8 @@ elif menu == '分科報告':
     Generate_Report.main()
 elif menu == '分班報告':
     Generate_Report.by_class_report()
+elif menu == '全年級報告':
+    Generate_Report.tbd()
     # show_pages(
     #     [
     #         Page("home.py", "Home", ":school:"),

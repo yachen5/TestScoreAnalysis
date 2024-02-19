@@ -294,6 +294,24 @@ def by_class_report():
         st.warning("請回到前一步驟，上傳Excel文件")
 
 
+def tbd():
+    if 'subjects' in st.session_state:
+        year_group = st.session_state.year_groups
+        s_year = st.selectbox("請選擇年級", list(year_group.keys()))
+        a_year = year_group[s_year]
+        # st.dataframe(a_year.student_numbers)
+        # melt the student_numbers dataframe. keep "學號" and move the rest to a new column "科目"
+        df_temp = a_year.student_numbers.melt(id_vars=['學號'], var_name='科目', value_name='答對率')
+        df_temp['答對率'] = pd.to_numeric(df_temp['答對率'])
+        # df_temp['答對率'] = df_temp['答對率'].apply(lambda x: round(x * 100, 2))
+        # calculate the mean and std of the correct rate
+        df_g = df_temp.groupby(by='學號', as_index=False).agg({'答對率': ['mean', 'std']})
+        # st.dataframe(df_g)
+
+    else:
+        st.warning("請回到前一步驟，上傳Excel文件")
+
+
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     # with open(pkl_file_path, 'rb') as pkl_file:

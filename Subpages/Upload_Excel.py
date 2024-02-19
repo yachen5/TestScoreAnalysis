@@ -110,26 +110,36 @@ def main():
         # Find unique values in column 'AA'
         unique_values = melted_df['年級_科目'].unique()
 
-        # Create a dictionary with 'AA' values as keys and filtered DataFrames as values
-        result_dict = {}
+        with st.spinner('Processing Data...'):
+            # Create a dictionary with 'AA' values as keys and filtered DataFrames as values
+            result_dict = {}
 
-        for value in unique_values:
-            filtered_df = melted_df[melted_df['年級_科目'] == value].copy()
-            filtered_df = filtered_df.dropna(subset='Answer')
-            st.write(f'Processing {value}')
-            result_dict[value] = SharedObjects.Subject(filtered_df)
+            for value in unique_values:
+                filtered_df = melted_df[melted_df['年級_科目'] == value].copy()
+                filtered_df = filtered_df.dropna(subset='Answer')
+                st.write(f'Processing {value}')
+                result_dict[value] = SharedObjects.Subject(filtered_df, value)
 
-        st.session_state.subjects = result_dict
+            st.session_state.subjects = result_dict
 
-        class_dict = {}
-        classes = list(melted_df['班級'].unique())
+            year_dict = {}
+            for a_year in list(df['年級'].unique()):
+                st.write(f'Processing 年級 {a_year}')
+                year_obj = SharedObjects.ClassGroup(melted_df[melted_df['年級'] == a_year].copy(), a_year)
+                year_obj.add_pw_by_subject(result_dict)
+                year_dict[a_year] = year_obj
 
-        for a_class in classes:
-            class_dict[a_class] = SharedObjects.Class(melted_df[melted_df['班級'] == a_class].copy())
-            st.write(f'Processing 班級 {a_class}')
+            st.session_state.year_groups = year_dict
 
-        st.session_state['class_groups'] = class_dict
-        st.success('Excel 檔案已經暫存到記憶體，準備進行下一步分析')
+            class_dict = {}
+            classes = list(melted_df['班級'].unique())
+
+            for a_class in classes:
+                class_dict[a_class] = SharedObjects.Class(melted_df[melted_df['班級'] == a_class].copy())
+                st.write(f'Processing 班級 {a_class}')
+
+            st.session_state['class_groups'] = class_dict
+            st.success('Excel 檔案已經暫存到記憶體，準備進行下一步分析')
 
 
 if __name__ == '__main__':

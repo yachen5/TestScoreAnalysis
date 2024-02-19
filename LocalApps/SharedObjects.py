@@ -23,12 +23,13 @@ class Subject:
         correct_rate_all (DataFrame): A DataFrame containing the correct rate of all questions.
     """
 
-    def __init__(self, df):
+    def __init__(self, df, name):
         """Initialize the Subject class.
 
         Args:
             df (DataFrame): A DataFrame containing the input data.
         """
+        self.name = name
         self.large_df = None
         self.q_by_answer = None
         self.distinguish_rate = None
@@ -41,6 +42,9 @@ class Subject:
         self.correct_rate_all = self.correct_rate([''], exclude=True)
         self.calculate_error_rank_by_student_all()
         self.get_distinguish_rate()
+
+    # divide the students into 10 groups based on scores and assign a score to each student
+    # the lowest group is assign the number 0.1, the highest group is assign the number 1
 
     def student_scores(self):
         """Calculate the scores of each student."""
@@ -56,7 +60,11 @@ class Subject:
         s_c = s_c.drop(columns=['Answer', 'Question'])
         ic(s_c)
         # assign each student to a group
+        # add PG column to the dataframe
         s_c = assign_four_groups(s_c)
+        # add PW column to the dataframe
+        s_c = assign_ten_groups(s_c)
+
         ic(s_c)
         self.idv_score = s_c.copy()
 
@@ -125,6 +133,11 @@ class Subject:
         # ic(df)
 
     def build_question_matrix(self):
+        """Builds a question matrix by merging correct rate and distinguish rate dataframes.
+
+        Returns:
+            pandas.DataFrame: The question matrix dataframe.
+        """
         df_m = self.correct_rate_all.merge(self.distinguish_rate, on=['Question'], how='left')
 
         threshold_high = 0.75
@@ -145,20 +158,69 @@ class Subject:
 
 
 class Class:
+    """A class representing a group of students.
+
+    Attributes:
+        subjects (list): A list of unique subjects in the class.
+        students (DataFrame): A DataFrame containing student information.
+        student_numbers (list): A sorted list of unique student numbers in the class.
+    """
+
     def __init__(self, df):
-        # df2 = df.copy()
         self.subjects = list(df['年級_科目'].unique())
         df = df[['班級', '座號', '學號']]
         df = df.drop_duplicates(subset=['學號'])
         self.students = df.copy()
-        self.class_numbers = list(self.students['學號'].unique())
-        self.class_numbers.sort()
+        self.student_numbers = list(self.students['學號'].unique())
+        self.student_numbers.sort()
+
+
+class ClassGroup:
+    """A class representing a group of students in a specific year.
+
+    Attributes:
+        df (DataFrame): The DataFrame containing student data.
+        a_year (int): The year of the class group.
+    """
+
+    def __init__(self, df, a_year):
+        self.name = a_year
+        self.df = df.copy()
+        self.classes = self.df['班級'].unique()
+        student_numbers = self.df['學號'].unique()
+        # convert self.student_numbers to a dataframe
+        self.student_numbers = pd.DataFrame(student_numbers, columns=['學號'])
+        self.subjects = self.df['年級_科目'].unique()
+
+    # from the subject class, each subject have calculated the PW column
+    # try to assign it to each student number
+    def add_pw_by_subject(self, result_dict):
+        for subject_l in self.subjects:
+            a_subject = result_dict[subject_l]
+
+            # given a subject class
+            # create a single column dataframe that use subject_name as column name and PW as data
+            df = self.student_numbers.merge(a_subject.idv_score[['學號', 'PW']], on=['學號'], how='left').copy()
+            self.student_numbers = df.rename(columns={'PW': a_subject.name}).copy()
 
 
 def callback_analysis(df, a_q, a_c, col):
+    """
+    Perform analysis on a dataframe based on the given question and class filters.
+
+    Parameters:
+    df (pandas.DataFrame): The dataframe to be analyzed.
+    a_q (str): The question to filter the dataframe.
+    a_c (list): The list of class filters to apply.
+    col: The column object to display the analysis results.
+
+    Returns:
+    None
+    """
     df_q = df[(df['Question'] == a_q) & (df['班級'].isin(a_c))]
 
     # st.dataframe(df_q)
+    # 
     grouped_df = calculate_percentage(df_q, ['Rank'], 'Answer', '學號')
 
     df_p = df_q.copy()
@@ -181,6 +243,22 @@ def callback_analysis(df, a_q, a_c, col):
     col.plotly_chart(fig)
 
 
+# assign students to 10 groups based on their scores
+# labels are from 0.1 to 1
+# the lowest group is assign the number 0.1, the highest group is assign the number 1
+
+def assign_ten_groups(df):
+    group_size = len(df) // 10
+    df = df.sort_values('Percentage', ascending=True)
+    df['PW'] = pd.cut(np.arange(len(df)),
+                      bins=[-1, group_size, 2 * group_size, 3 * group_size, 4 * group_size, 5 * group_size,
+                            6 * group_size,
+                            7 * group_size, 8 * group_size, 9 * group_size, len(df)],
+                      labels=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
+                      include_lowest=True)
+    return df.copy()
+
+
 def assign_four_groups(df):
     group_size = len(df) // 4
     df = df.sort_values('Percentage', ascending=True)
@@ -191,6 +269,12 @@ def assign_four_groups(df):
 
 
 def dis_index(df):
+    """
+    Calculate the percentage of students with a specific answer in each performance group.
+
+    :param df: DataFrame containing student data.
+    :return: Tuple of two floats representing the percentage of students with '.' answer in 'PH' and 'PL' performance groups.
+    """
     df = assign_four_groups(df)
     # st.dataframe(df)
     df_g = df.groupby(['PG', 'Answer']).agg({'學號': 'count'})

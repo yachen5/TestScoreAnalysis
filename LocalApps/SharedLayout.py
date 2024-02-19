@@ -65,6 +65,15 @@ def convert_stats(df_desc):
 
 
 def layout_class(include_all=False):
+    """
+    Renders the layout for analyzing class performance.
+
+    Args:
+        include_all (bool, optional): Whether to include all subjects or select specific subjects. Defaults to False.
+
+    Returns:
+        None
+    """
     a_dic = st.session_state.class_groups
     # col1, col2 = st.columns(2)
     selections = list(a_dic.keys())
@@ -72,7 +81,7 @@ def layout_class(include_all=False):
     selections.insert(0, "請選擇")
     a_selection = st.selectbox("請選擇一個班級", selections)
     # st.write(a_selection)
-    if (a_selection != "請選擇"):
+    if a_selection != "請選擇":
         subjects = st.session_state['subjects']
         a_class = a_dic[a_selection]
         # st.write(a_class.class_numbers)
@@ -88,7 +97,7 @@ def layout_class(include_all=False):
             subject_class = subjects[a_subject]
             df = subject_class.idv_score.copy()
             # df['Percentage'] = round(df['Percentage'] * 100, )
-            df['Groups'] = df['學號'].apply(lambda x: a_selection if x in a_class.class_numbers else '其他班')
+            df['Groups'] = df['學號'].apply(lambda x: a_selection if x in a_class.student_numbers else '其他班')
             df = df.sort_values(by=['Groups'])
             # st.dataframe(df)
             st.subheader(f"{a_subject} 本班與其他班的箱型圖比較")
@@ -101,9 +110,9 @@ def layout_class(include_all=False):
             st.markdown('統計表')
             st.dataframe(df_desc)
 
-            q_correct = subject_class.correct_rate(a_class.class_numbers, True)
+            q_correct = subject_class.correct_rate(a_class.student_numbers, True)
             q_correct['Group'] = '其他班'
-            q_correct2 = subject_class.correct_rate(a_class.class_numbers, False)
+            q_correct2 = subject_class.correct_rate(a_class.student_numbers, False)
             q_correct2['Group'] = a_selection
 
             df_merge = q_correct.merge(q_correct2, on=['Question'], how='left')
@@ -127,7 +136,7 @@ def layout_class(include_all=False):
             # fig.add_trace(px.line(df_merge, x='Question', y='Delta', color_discrete_sequence=['red']).data[0])
             st.plotly_chart(fig)
             df_ek = subject_class.error_rank.copy()
-            df_ek = df_ek[df_ek['學號'].isin(a_class.class_numbers)]
+            df_ek = df_ek[df_ek['學號'].isin(a_class.student_numbers)]
             df_small = df[['學號', 'PG']].copy()
             df_ek = df_ek.merge(df_small, on=['學號'], how='left')
             # st.dataframe(df_ek)
@@ -154,7 +163,7 @@ def layout_class(include_all=False):
             if include_all:
                 pass
             else:
-                pick_student = st.selectbox("請選擇一個學號", a_class.class_numbers)
+                pick_student = st.selectbox("請選擇一個學號", a_class.student_numbers)
                 df_ek_sub = df_ek_sub[df_ek_sub['學號'] == pick_student]
 
             df_ek_sub = df_ek_sub[

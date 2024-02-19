@@ -1,11 +1,9 @@
 # This is a sample Python script.
 
-import numpy as np
-import pandas as pd
 import plotly_express as px
 import streamlit as st
 
-from LocalApps.SharedObjects import callback_analysis
+from LocalApps import SharedLayout
 from Subpages import Generate_Report
 
 
@@ -17,99 +15,6 @@ from Subpages import Generate_Report
 
 # Specify the path to your .pkl file
 # pkl_file_path = r'../summary.pkl'
-
-
-def dis_index(df):
-    group_size = len(df) // 4
-    df = df.sort_values('Percentage', ascending=True)
-    df['PG'] = pd.cut(np.arange(len(df)),
-                      bins=[-1, group_size, 2 * group_size, 3 * group_size, len(df)],
-                      labels=['PL', 'PML', 'PMH', 'PH'], include_lowest=True)
-    # st.dataframe(df)
-    df_g = df.groupby(['PG', 'Answer']).agg({'學號': 'count'})
-    df_g['Percentage'] = df_g.groupby(['PG'])['學號'].transform(lambda x: x / x.sum())
-    df_g = df_g.reset_index()
-    df_p = df_g[df_g['Answer'] == '.']
-    df_p = df_p.set_index('PG')
-    ph = round(df_p.loc['PH', 'Percentage'], 3)
-    pl = round(df_p.loc['PL', 'Percentage'], 3)
-    #
-    # st.dataframe(df_p)
-    # st.markdown([ph, pl])
-    return ph, pl
-
-
-def layout_part_3(df, df_sorted):
-    st.markdown("## 單一問題分析")
-
-    # Add form components
-    qs = list(df_sorted['Question'].unique())
-
-    # qs.sort()
-    a_q = st.selectbox('請選擇一個題目', qs)
-
-    # specific question's correct % of the whole class year
-    all_p = df_sorted.set_index('Question').loc[a_q, 'percentage_text']
-
-    df_qq = df[(df['Question'] == a_q)].copy()
-    # dis_index(df_qq)
-    pa, pb = dis_index(df_qq)
-    all_d = round(pa - pb, 3)
-    st.markdown(f'### 本題的全年級答對率是{all_p}，鑑別率是{all_d}')
-    st.markdown(
-        f"""鑑別率(D)計算方法:每25%分成一個群組，D = 最高25%組的達對率{pa} - 最低25%組的答對率{pb}。
-        ([參考Link](https://pedia.cloud.edu.tw/Entry/WikiContent?title=%E9%91%91%E5%88%A5%E5%BA%A6&search=%E9%91%91%E5%88%A5%E5%BA%A6) 
-        一般而言，鑑別度以0.25以上為標準，高於0.4為優良試題)""")
-    gg = df_qq.groupby(['班級', 'Answer']).agg({'學號': 'count'})
-    gg['Percentage'] = gg.groupby(['班級'])['學號'].transform(lambda x: x / x.sum())
-    gg = gg.reset_index()
-    gg['percentage_text'] = gg['Percentage'].apply(lambda x: f'{int(x * 100)}%')
-
-    fig = px.bar(gg, x='班級', y='Percentage', color='Answer', text='percentage_text', width=1200, height=600)
-    # st.markdown('全年級各班答對比例')
-    st.markdown("### 全年級各班答案分布圖")
-    st.markdown("\t .\t-----> 回答正確")
-    st.markdown("\t =\t-----> 空白未作答")
-
-    st.plotly_chart(fig)
-
-    st.markdown("### 分組比較: 可全年級，幾個班或一個班互比")
-    col1, col2 = st.columns(2)
-    cc = list(df['班級'].unique())
-    cc.sort()
-    a_c1 = col1.multiselect('選擇班級，可複選', cc, cc)
-    a_c2 = col2.multiselect('選擇班級，可複選', cc, cc[0])
-
-    # Display the entered values after form submission
-    if (len(a_c1) > 0) & (len(a_c2) > 0):
-        callback_analysis(df, a_q, a_c1, col1)
-        callback_analysis(df, a_q, a_c2, col2)
-
-
-def layout_part_2(df):
-    grouped_df = df.groupby(['年級', 'Question', 'Answer']).agg({'學號': 'count'})
-    grouped_df['Percentage'] = grouped_df.groupby(['年級', 'Question'])['學號'].transform(lambda x: x / x.sum())
-    grouped_df = grouped_df.reset_index()
-    grouped_df['percentage_text'] = grouped_df['Percentage'].apply(lambda x: f'{int(x * 100)}%')
-    df_1 = grouped_df.copy()
-    # df_1 = df_1.sort_values(by='Answer')
-    category_order = list(df_1['Question'].unique()).sort()
-    fig = px.bar(df_1, x='Question', y='Percentage', color='Answer', text='percentage_text', facet_row='年級',
-                 width=1200, height=600, category_orders={'Question': category_order})
-    st.markdown('### 各題答案分布')
-    st.markdown("\t .\t-----> 回答正確")
-    st.markdown("\t =\t-----> 空白未作答")
-    st.plotly_chart(fig)
-    df_a = df_1[df_1['Answer'] == '.'].copy()
-    df_a = df_a.drop(['學號', 'Answer'], axis=1)
-
-    df_sorted = df_a.sort_values(by='Percentage')
-
-    fig = px.bar(df_sorted, x='Question', y='Percentage', text='percentage_text', color='Percentage', width=1200,
-                 height=600, color_continuous_scale=["red", "green"])
-    st.markdown('### 各題 依答對率排序')
-    st.plotly_chart(fig)
-    return df_sorted
 
 
 def layout_main(a_dic, a_sel, g_m, normal_only):
@@ -182,40 +87,16 @@ def layout_main(a_dic, a_sel, g_m, normal_only):
             st.stop()
         # st.dataframe(df)
         st.divider()
-        layout_by_class(df, s_c)
+        fig = SharedLayout.by_class_summary(df, s_c)
+        st.plotly_chart(fig)
 
         st.divider()
-        df_sorted = layout_part_2(df)
+        df_sorted = Generate_Report.layout_part_2(df)
         # Group by to get % correct by question and by the whole class year
 
         st.divider()
-        layout_part_3(df, df_sorted)
+        Generate_Report.layout_part_3(df, df_sorted)
         st.success("完成!")
-
-
-def layout_by_class(df, s_c):
-    st.markdown('### 各班成績分布與排名')
-    col1, col2 = st.columns(2)
-    # st.dataframe(df)
-    df_box = df.groupby(['班級', '學號'], as_index=False).agg({'Question': 'count'})
-    df_box = df_box.merge(s_c, on=['學號'], how='left')
-    df_desc = df_box.groupby(['班級'])['Percentage'].describe()
-    col1.dataframe(df_desc)
-    # Find the top category by mean and median (50%)
-    top_categories_mean = df_desc['mean'].nlargest(3).index
-    top_categories_median = df_desc['50%'].nlargest(3).index
-    # Generate the text summary for mean
-    text_summary_mean = f"平均前三名的班級: {', '.join(top_categories_mean)} 各自平均為 {', '.join([f'{mean:.2f}' for mean in df_desc.loc[top_categories_mean, 'mean']])}"
-    # Generate the text summary for median (50%)
-    text_summary_median = f"中位數前三名的班級: {', '.join(top_categories_median)} 各自中位數為 {', '.join([f'{median:.2f}' for median in df_desc.loc[top_categories_median, '50%']])}"
-    # Print the text summaries
-    col2.write("\n歸納總結:\n")
-    col2.write(text_summary_mean)
-    col2.write(text_summary_median)
-    fig = px.box(df_box, x='班級', y='Percentage', points='all', color='班級', width=900)
-    st.markdown('### 箱型圖')
-    fig.update_traces(boxmean=True)
-    st.plotly_chart(fig)
 
 
 def main():

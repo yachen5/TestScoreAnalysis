@@ -25,7 +25,7 @@ def overview():
 
 謝謝您選擇這個的工具，我們期待為您提供卓越的數據分析體驗！
 
-版本 V1.0218_2024
+版本 V1.0219_2024
 """)
 
 
@@ -43,7 +43,7 @@ with st.sidebar.container():
             sac.MenuItem('分科報告', icon='bar-chart-line-fill'),
             # sac.MenuItem('分班報告', icon='diagram-3-fill', description=''),
             sac.MenuItem('分班報告', icon='cone-striped', description=''),
-            sac.MenuItem('全年級報告', icon='cone-striped', description='', tag=[new_tag]),
+            sac.MenuItem('全年級報告', icon='cone-striped', description='開發中...', tag=[new_tag]),
         ]),
     ], open_all=True, color='blue')
 

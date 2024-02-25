@@ -6,7 +6,7 @@ import plotly_express as px
 import streamlit as st
 
 from LocalApps.SharedLayout import by_class_summary, layout_class
-from LocalApps.SharedObjects import callback_analysis, dis_index, calculate_percentage
+from LocalApps.SharedObjects import callback_analysis, dis_index, calculate_percentage, get_excel_download
 
 
 def grouping_1(s_c):
@@ -303,10 +303,39 @@ def tbd():
         # melt the student_numbers dataframe. keep "學號" and move the rest to a new column "科目"
         df_temp = a_year.student_numbers.melt(id_vars=['學號'], var_name='科目', value_name='答對率')
         df_temp['答對率'] = pd.to_numeric(df_temp['答對率'])
+
+        df_temp = df_temp[['學號', '答對率']]
+        # st.dataframe(df_temp)
         # df_temp['答對率'] = df_temp['答對率'].apply(lambda x: round(x * 100, 2))
         # calculate the mean and std of the correct rate
-        df_g = df_temp.groupby(by='學號', as_index=False).agg({'答對率': ['mean', 'std']})
+        df_g = df_temp.groupby(by='學號')['答對率'].describe()
+        df_g = df_g.reset_index()
         # st.dataframe(df_g)
+        # find students with max - min >0.5
+        df_g['Delta'] = df_g['max'] - df_g['min']
+        # add a "tag" column and add "high_delta" tag to indicate if the student has a high delta
+        df_g['tag'] = df_g['Delta'].apply(lambda x: '高低分差距大' if x > 0.5 else '')
+        # append "low mean" to the tag column if the mean is lower than 0.4. use "," to separate the tags if there are any
+        df_g['tag'] = df_g.apply(lambda x: x['tag'] + ',平均分數低' if x['mean'] < 0.4 else x['tag'], axis=1)
+        # remove the leading "," if there are any in column tag
+        df_g['tag'] = df_g['tag'].apply(lambda x: x.lstrip(','))
+        # append "high std" to the tag column if the std is higher than 0.2. use "," to separate the tags if there are any
+        df_g['tag'] = df_g.apply(lambda x: x['tag'] + ',各科分數變化大' if x['std'] > 0.2 else x['tag'], axis=1)
+        # remove the leading "," if there are any in column tag
+        df_g['tag'] = df_g['tag'].apply(lambda x: x.lstrip(','))
+        # append "high mean" to the tag column if the mean is higher than 0.7. use "," to separate the tags if there are any
+        df_g['tag'] = df_g.apply(lambda x: x['tag'] + ',平均分數高' if x['mean'] > 0.9 else x['tag'], axis=1)
+        # remove the leading "," if there are any in column tag
+        df_g['tag'] = df_g['tag'].apply(lambda x: x.lstrip(','))
+
+        df_s_class = a_year.get_student_class_df()
+        df_g = df_g.merge(df_s_class, on='學號', how='left')
+        # students are assigned with various tags
+        st.write("學生答題狀況與分析後的標籤")
+        st.dataframe(df_g)
+        # create a link to download the dataframe as an excel file
+        get_excel_download(df_g)
+
 
     else:
         st.warning("請回到前一步驟，上傳Excel文件")

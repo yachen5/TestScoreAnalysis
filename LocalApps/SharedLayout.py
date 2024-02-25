@@ -1,8 +1,8 @@
-import io
-
 import pandas as pd
 import plotly_express as px
 import streamlit as st
+
+from LocalApps.SharedObjects import get_excel_download
 
 
 def by_class_summary(df, s_c):
@@ -170,15 +170,6 @@ def layout_class(include_all=False):
                 ['班級', '座號', '學號', '科目代號', 'Question', 'Answer', 'Percentage', 'percentage_text', 'PG']]
             # df_ek_all = df_ek_all.sort_values(by=['學號'])
             st.dataframe(df_ek_sub)
-            excel_file = io.BytesIO()
-            df_ek_sub.to_excel(excel_file, index=False)  # Adjust parameters as needed
-
-            # Create a download button with appropriate label and mimetype
-            download_link = st.download_button(
-                label="下載上列的Excel報表",
-                data=excel_file.getvalue(),
-                file_name="data.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            )
+            get_excel_download(df_ek_sub)
 
         # st.dataframe(q_correct)

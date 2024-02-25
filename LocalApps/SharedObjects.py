@@ -1,6 +1,9 @@
+import io
+
 import numpy as np
 import pandas as pd
 import plotly_express as px
+import streamlit as st
 from icecream import ic
 
 
@@ -203,6 +206,14 @@ class ClassGroup:
             df = self.student_numbers.merge(a_subject.idv_score[['學號', 'PW']], on=['學號'], how='left').copy()
             self.student_numbers = df.rename(columns={'PW': a_subject.name}).copy()
 
+    # use student_numbers to find the student's class
+    # create a dataframe with only student numbers and class
+
+    def get_student_class_df(self):
+        df = self.df[['學號', '班級']]
+        df = df.drop_duplicates(subset=['學號'])
+        return df.copy()
+
 
 def callback_analysis(df, a_q, a_c, col):
     """
@@ -313,3 +324,15 @@ def calculate_percentage(df, group_cols, by_col, sum_col):
     df = df.reset_index()
     df['percentage_text'] = df['Percentage'].apply(lambda x: f'{int(x * 100)}%')
     return df
+
+
+def get_excel_download(df):
+    excel_file = io.BytesIO()
+    df.to_excel(excel_file, index=False)  # Adjust parameters as needed
+    # Create a download button with appropriate label and mimetype
+    download_link = st.download_button(
+        label="下載上列的Excel報表",
+        data=excel_file.getvalue(),
+        file_name="data.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )

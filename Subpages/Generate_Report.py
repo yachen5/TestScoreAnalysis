@@ -302,13 +302,13 @@ def tbd():
 
         # use streamlit to display a text and explain to users about the purpose of this page
         st.markdown("""這分析主要是找出每位學生的各科在全年級的表現級距狀況
-        以年級為單位，將每位學生的各科成績按照全年級高低分成十等分，然後計算分數級距從0.1到最高1。藉由統計，找出科目級距的分布狀況，並且給予標籤。
+        以年級為單位，將每位學生的各科成績按照全年級高低分成十等分，然後計算分數級距從0.1到最高1。藉由統計，找出科目級距(舉例有7個科目)的分布狀況，並且給予標籤。
         
         標籤的意義如下：
-        - 高低分差距大
-        - 平均分數低
-        - 各科分數變化大
-        - 平均分數高""")
+        - 高低分差距大 (最高級距-最低級距>0.5)
+        - 平均分數低 (平均<0.4)
+        - 各科分數變化大 (標準差>0.2)
+        - 平均分數高 (平均>0.9)""")
 
         a_year = year_group[s_year]
         # st.dataframe(a_year.student_numbers)
@@ -346,8 +346,10 @@ def tbd():
         st.write("學生答題狀況與分析後的標籤")
         # convert english description to chinese
         df_g = convert_stats(df_g)
+        # don't show index in below dataframe
+        df_g = df_g.reset_index(drop=True)
         st.dataframe(df_g)
-        # create a link to download the dataframe as an excel file
+        # create a link to download the dataframe as an Excel file
         get_excel_download(df_g)
 
 

@@ -6,7 +6,8 @@ import plotly_express as px
 import streamlit as st
 
 from LocalApps.SharedLayout import by_class_summary, layout_class
-from LocalApps.SharedObjects import callback_analysis, dis_index, calculate_percentage, get_excel_download
+from LocalApps.SharedObjects import callback_analysis, dis_index, calculate_percentage, get_excel_download, \
+    convert_stats
 
 
 def grouping_1(s_c):
@@ -298,6 +299,17 @@ def tbd():
     if 'subjects' in st.session_state:
         year_group = st.session_state.year_groups
         s_year = st.selectbox("請選擇年級", list(year_group.keys()))
+
+        # use streamlit to display a text and explain to users about the purpose of this page
+        st.markdown("""這分析主要是找出每位學生的各科在全年級的表現級距狀況
+        以年級為單位，將每位學生的各科成績按照全年級高低分成十等分，然後計算分數級距從0.1到最高1。藉由統計，找出科目級距的分布狀況，並且給予標籤。
+        
+        標籤的意義如下：
+        - 高低分差距大
+        - 平均分數低
+        - 各科分數變化大
+        - 平均分數高""")
+
         a_year = year_group[s_year]
         # st.dataframe(a_year.student_numbers)
         # melt the student_numbers dataframe. keep "學號" and move the rest to a new column "科目"
@@ -332,6 +344,8 @@ def tbd():
         df_g = df_g.merge(df_s_class, on='學號', how='left')
         # students are assigned with various tags
         st.write("學生答題狀況與分析後的標籤")
+        # convert english description to chinese
+        df_g = convert_stats(df_g)
         st.dataframe(df_g)
         # create a link to download the dataframe as an excel file
         get_excel_download(df_g)

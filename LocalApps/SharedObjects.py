@@ -336,3 +336,23 @@ def get_excel_download(df):
         file_name="data.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     )
+
+
+def convert_stats(df_desc):
+    """Converts statistical summary dataframe to a more readable format.
+
+    Args:
+        df_desc (pandas.DataFrame): The statistical summary dataframe.
+
+    Returns:
+        pandas.DataFrame: The converted dataframe with renamed columns and converted values.
+    """
+    df_desc2 = df_desc.rename(
+        columns={'count': '人數', 'mean': '平均', 'std': '標準差', 'min': '最低分', '25%': '25%', '50%': '中位數',
+                 '75%': '75%', 'max': '最高分'})
+    # convert dicimals to percentage for better readability
+    cols_to_convert = ['平均', '標準差', '最低分', '25%', '中位數', '75%', '最高分']
+    # Convert columns to percentage
+    for col in cols_to_convert:
+        df_desc2[col] = round(df_desc2[col] * 100, 2)
+    return df_desc2

@@ -2,7 +2,7 @@ import pandas as pd
 import plotly_express as px
 import streamlit as st
 
-from LocalApps.SharedObjects import get_excel_download
+from LocalApps.SharedObjects import get_excel_download, convert_stats
 
 
 def by_class_summary(df, s_c):
@@ -42,26 +42,6 @@ def by_class_summary(df, s_c):
     fig.update_traces(boxmean=True)
     return fig
     # st.plotly_chart(fig)
-
-
-def convert_stats(df_desc):
-    """Converts statistical summary dataframe to a more readable format.
-
-    Args:
-        df_desc (pandas.DataFrame): The statistical summary dataframe.
-
-    Returns:
-        pandas.DataFrame: The converted dataframe with renamed columns and converted values.
-    """
-    df_desc2 = df_desc.rename(
-        columns={'count': '人數', 'mean': '平均', 'std': '標準差', 'min': '最低分', '25%': '25%', '50%': '中位數',
-                 '75%': '75%', 'max': '最高分'})
-    # convert dicimals to percentage for better readability
-    cols_to_convert = ['平均', '標準差', '最低分', '25%', '中位數', '75%', '最高分']
-    # Convert columns to percentage
-    for col in cols_to_convert:
-        df_desc2[col] = round(df_desc2[col] * 100, 2)
-    return df_desc2
 
 
 def layout_class(include_all=False):

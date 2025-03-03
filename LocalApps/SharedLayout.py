@@ -79,7 +79,7 @@ def layout_class(include_all=False):
             # df['Percentage'] = round(df['Percentage'] * 100, )
             df['Groups'] = df['學號'].apply(lambda x: a_selection if x in a_class.student_numbers else '其他班')
             df = df.sort_values(by=['Groups'])
-            # st.dataframe(df)
+            st.dataframe(df)
             st.subheader(f"{a_subject} 本班與其他班的箱型圖比較")
             st.markdown('可參考 中位數與高低分差')
             fig = px.box(df, x='Groups', y='Percentage', facet_col='Groups', color='Groups')

@@ -321,7 +321,6 @@ def calculate_percentage(df, group_cols, by_col, sum_col):
     else:
         df['Percentage'] = df.groupby(group_cols)[sum_col].transform(lambda x: x / x.sum())
     df['Percentage'] = df['Percentage'].fillna(0)
-    st.dataframe(df)
     df = df.reset_index()
     df['percentage_text'] = df['Percentage'].apply(lambda x: f'{int(x * 100)}%')
     return df

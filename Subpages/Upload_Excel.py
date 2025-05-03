@@ -5,7 +5,7 @@ import streamlit as st
 from PIL import Image
 from openpyxl import load_workbook
 
-from LocalApps import AirtableTools as at
+# from LocalApps import AirtableTools as at
 from LocalApps import SharedObjects
 
 
@@ -66,28 +66,23 @@ def main():
         df['班級'] = df['班級'].astype(str)
         df['座號'] = df['座號'].astype(str)
 
-        if db_check:
-            st.spinner('Process')
-            grade_list = list(df['年級'].unique())
-            for a_grade in grade_list:
-                st.write(a_grade)
-                if a_grade == 1:
-                    base_name = st.secrets["base_id_7"]
-                elif a_grade == 2:
-                    base_name = st.secrets["base_id_8"]
-                elif a_grade == 3:
-                    base_name = st.secrets["base_id_9"]
-                else:
-                    st.error('無法判斷年級')
-                at.delete_data(base_name)
-                temp_df = df[df['年級'] == a_grade]
-                at.batch_write_data(temp_df, base_name)
-
-        # for airtable testing purpose
-        # i_list = list(df['年級_科目'].unique())
-        # for a_sub in i_list:
-        #     df_temp = df[df['年級_科目'] == a_sub]
-        #     df_temp.to_csv(a_sub + '.csv')
+        # Database integration temporarily disabled - See git commit for history
+        # if db_check:
+        #     st.spinner('Process')
+        #     grade_list = list(df['年級'].unique())
+        #     for a_grade in grade_list:
+        #         st.write(a_grade)
+        #         if a_grade == 1:
+        #             base_name = st.secrets["base_id_7"]
+        #         elif a_grade == 2:
+        #             base_name = st.secrets["base_id_8"]
+        #         elif a_grade == 3:
+        #             base_name = st.secrets["base_id_9"]
+        #         else:
+        #             st.error('無法判斷年級')
+        #         at.delete_data(base_name)
+        #         temp_df = df[df['年級'] == a_grade]
+        #         at.batch_write_data(temp_df, base_name)
 
         # Split the 'original_column' into individual characters
         df_split = df['答題對錯'].apply(lambda x: pd.Series(list(x)))

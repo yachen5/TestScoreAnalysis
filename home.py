@@ -9,54 +9,56 @@ NEW_TAG = sac.Tag('New', color='green')
 
 
 def overview():
+    st.title("📊 Welcome to the Data Analysis Platform!")
+    st.subheader("Analyze your test results with ease and precision.")
     st.markdown("""
-    **(以下文字由ChatGPT提供)**
+    ---
+    **Features:**
+    - **📂 Upload Files**: Easily upload your test results in Excel format.
+    - **📈 Data Analysis**: Perform detailed analysis using powerful tools.
+    - **📊 Visualization**: Gain insights with interactive visualizations.
 
-    歡迎使用我們的網站！
+    **How to Get Started:**
+    1. Use the **sidebar menu** to navigate.
+    2. Upload your test results.
+    3. Explore the data and generate reports.
 
-    我們提供一個簡單而強大的平台，讓您能夠輕鬆上傳測驗結果的 Excel 檔案，並進行詳細的分析。這個網站設計得易於使用，讓您能夠快速上手，進而深入瞭解您的測驗數據。
-
-    主要功能包括：
-
-    - 上傳檔案： 您可以使用我們的檔案上傳功能，輕鬆選擇並上傳測驗結果的 Excel 檔案。
-    - 數據分析： 我們使用強大的 Pandas 庫進行數據處理，以便您能夠執行各種詳細的分析，從而瞭解測驗結果的背後故事。
-    - 視覺化： 我們提供豐富的數據視覺化工具 Plotly，以圖表和圖形的形式呈現分析結果，使複雜的數據更容易理解。
-
-    **請按開左上方的分頁箭頭**，開始使用吧！上傳您的測驗結果，探索數據，並獲得深入的分析報告。如果您有任何問題，請隨時聯繫我們。
-
-    謝謝您選擇這個的工具，我們期待為您提供卓越的數據分析體驗！
-
-    版本 V2.0303_2025
-    """)
+    ---
+    **Need Help?** Contact us at [support@example.com](mailto:support@example.com).
+    """, unsafe_allow_html=True)
+    st.info("Version: V2.0303_2025")
 
 
 def create_sidebar_menu():
     """Creates the sidebar menu."""
     return sac.menu([
-        sac.MenuItem('Home', icon='house-fill', tag=[RE_TAG]),
-        sac.MenuItem('上傳Excel檔案', description='為了保護個資，網頁關閉後資料即移除', icon='filetype-xlsx'),
-        sac.MenuItem('分析工具', icon='clipboard-data', description='網頁可互動式選取', children=[
-            sac.MenuItem('科任老師報表與分析', icon='bar-chart-line'),
-            sac.MenuItem('導師報表與分析', icon='diagram-3'),
-        ]),
-        sac.MenuItem('輸出檔案', icon='filetype-pdf', description='固定格式分析報表一鍵輸出', children=[
-            sac.MenuItem('分科報告', icon='bar-chart-line-fill'),
-            sac.MenuItem('分班報告', icon='cone-striped'),
-            sac.MenuItem('全年級報告', icon='cone-striped', description='對學生各科表現的總體評論', tag=[NEW_TAG]),
-        ]),
+        sac.MenuItem('🏠 Home', icon='house-fill', tag=[RE_TAG]),
+        sac.MenuItem('📂 Upload Excel File', description='Data is removed after the session ends', icon='filetype-xlsx'),
+        sac.MenuItem('🛠 Analysis Tools', icon='clipboard-data', description='Interactive selection available',
+                     children=[
+                         sac.MenuItem('📊 Subject Report & Analysis', icon='bar-chart-line'),
+                         sac.MenuItem('📋 Class Report & Analysis', icon='diagram-3'),
+                     ]),
+        sac.MenuItem('📤 Export Files', icon='filetype-pdf', description='One-click export of formatted reports',
+                     children=[
+                         sac.MenuItem('📈 Subject Report', icon='bar-chart-line-fill'),
+                         sac.MenuItem('📊 Class Report', icon='cone-striped'),
+                         sac.MenuItem('📋 Full Grade Report', icon='cone-striped',
+                                      description='Overall performance review', tag=[NEW_TAG]),
+                     ]),
     ], open_all=True, color='blue')
 
 
 def handle_menu_selection(menu):
     """Handles the menu selection."""
     menu_actions = {
-        'Home': overview,
-        '上傳Excel檔案': Upload_Excel.main,
-        '科任老師報表與分析': By_Subject_Analysis.main,
-        '導師報表與分析': By_Class_Analysis.main,
-        '分科報告': Generate_Report.main,
-        '分班報告': Generate_Report.by_class_report,
-        '全年級報告': Generate_Report.tbd,
+        '🏠 Home': overview,
+        '📂 Upload Excel File': Upload_Excel.main,
+        '📊 Subject Report & Analysis': By_Subject_Analysis.main,
+        '📋 Class Report & Analysis': By_Class_Analysis.main,
+        '📈 Subject Report': Generate_Report.main,
+        '📊 Class Report': Generate_Report.by_class_report,
+        '📋 Full Grade Report': Generate_Report.tbd,
     }
     action = menu_actions.get(menu)
     if action:
@@ -65,6 +67,7 @@ def handle_menu_selection(menu):
 
 # Main application logic
 with st.sidebar.container():
+    st.sidebar.title("📂 Navigation")
     menu = create_sidebar_menu()
 
 handle_menu_selection(menu)

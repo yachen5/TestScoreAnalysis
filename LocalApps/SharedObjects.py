@@ -31,6 +31,7 @@ class Subject:
 
         Args:
             df (DataFrame): A DataFrame containing the input data.
+            name (str): The name of the subject.
         """
         self.name = name
         self.large_df = None
@@ -40,10 +41,15 @@ class Subject:
         self.r_text = None
         self.idv_score = None
         self.df = df
+        # Calculate the number of unique questions in the input data
         self.question_count = len(list(self.df['Question'].unique()))
+        # Initialize student scores
         self.student_scores()
+        # Calculate the overall correct rate, excluding specific conditions
         self.correct_rate_all = self.correct_rate([''], exclude=True)
+        # Calculate the error ranking by student for all students
         self.calculate_error_rank_by_student_all()
+        # Calculate the discrimination index
         self.get_distinguish_rate()
 
     # divide the students into 10 groups based on scores and assign a score to each student

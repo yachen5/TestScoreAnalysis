@@ -6,8 +6,10 @@ import plotly_express as px
 import streamlit as st
 
 from LocalApps.SharedLayout import by_class_summary, layout_class
-from LocalApps.SharedObjects import callback_analysis, dis_index, calculate_percentage, get_excel_download, \
-    convert_stats
+from LocalApps.SharedLayout import by_class_summary, layout_class
+from src.analysis.statistics import calculate_percentage, convert_stats, dis_index
+from src.utils.ui_utils import get_excel_download
+from LocalApps.SharedObjects import callback_analysis
 
 
 def grouping_1(s_c):

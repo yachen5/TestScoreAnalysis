@@ -2,21 +2,24 @@ import pandas as pd
 import plotly_express as px
 import streamlit as st
 
-from LocalApps.SharedObjects import get_excel_download, convert_stats
+from src.utils.ui_utils import get_excel_download
+from src.analysis.statistics import convert_stats
 
 
-def by_class_summary(df, s_c):
+
+def by_class_summary(df: pd.DataFrame, s_c: pd.DataFrame):
     """
     Generate a summary of class performance and rankings.
 
     Args:
-        df (DataFrame): The input DataFrame containing student performance data.
-        s_c (DataFrame): The input DataFrame containing student information.
+        df (pd.DataFrame): The input DataFrame containing student performance data.
+        s_c (pd.DataFrame): The input DataFrame containing student information.
 
     Returns:
         fig (Figure): The generated box plot figure.
 
     """
+
     st.markdown('### 各班成績分布與排名')
     col1, col2 = st.columns(2)
     # st.dataframe(df)
